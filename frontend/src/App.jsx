@@ -16,6 +16,11 @@ import TraitementDetailPage from './pages/traitements/TraitementDetailPage';
 import SuiviPage from './pages/suivi/SuiviPage';
 import NewConsultationPage, { NewEvenementPage } from './pages/suivi/NewConsultationPage';
 import ConsultationDetailPage from './pages/suivi/ConsultationDetailPage';
+import RCPPage from './pages/rcp/RCPPage';
+import NewRCPPage, { NewDossierRCPPage } from './pages/rcp/NewRCPPage';
+import RCPDetailPage from './pages/rcp/RCPDetailPage';
+import StatistiquesPage from './pages/statistiques/StatistiquesPage';
+import ExportsPage from './pages/exports/ExportsPage';
 import { AppLayout } from './components/layout/Sidebar';
 import useAuthStore from './hooks/useAuth';
 import './styles/globals.css';
@@ -82,9 +87,13 @@ function App() {
         <Route path="/suivi/consultations/nouveau"  element={<ProtectedRoute><NewConsultationPage /></ProtectedRoute>} />
         <Route path="/suivi/consultations/:id"      element={<ProtectedRoute><ConsultationDetailPage /></ProtectedRoute>} />
         <Route path="/suivi/evenements/nouveau"     element={<ProtectedRoute><NewEvenementPage /></ProtectedRoute>} />
-        <Route path="/statistiques" element={<ProtectedRoute><ComingSoon title="Statistiques" /></ProtectedRoute>} />
+        <Route path="/statistiques" element={<ProtectedRoute><StatistiquesPage /></ProtectedRoute>} />
         <Route path="/carte"        element={<ProtectedRoute><ComingSoon title="Carte SIG" /></ProtectedRoute>} />
-        <Route path="/rcp"          element={<ProtectedRoute><ComingSoon title="RCP · Réunions de concertation" /></ProtectedRoute>} />
+        <Route path="/rcp"                      element={<ProtectedRoute><RCPPage /></ProtectedRoute>} />
+        <Route path="/rcp/nouveau"              element={<ProtectedRoute><NewRCPPage /></ProtectedRoute>} />
+        <Route path="/rcp/:id"                  element={<ProtectedRoute><RCPDetailPage /></ProtectedRoute>} />
+        <Route path="/rcp/dossier/nouveau"      element={<ProtectedRoute><NewDossierRCPPage /></ProtectedRoute>} />
+        <Route path="/exports"      element={<ProtectedRoute><ExportsPage /></ProtectedRoute>} />
         <Route path="/admin"        element={<ProtectedRoute><ComingSoon title="Administration" /></ProtectedRoute>} />
 
         {/* Redirect par défaut */}
