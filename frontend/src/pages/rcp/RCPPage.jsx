@@ -13,9 +13,9 @@ const STATUT_CFG = {
 };
 
 const TYPE_ICONS = {
-  sein:'🎀', digestif:'🫁', poumon:'🫁', orl:'👂', gyneco:'♀️',
-  uro:'🫘', hemato:'🩸', neuro:'🧠', dermato:'🫀', os:'🦴',
-  pediatrique:'👶', palliative:'🕊️', generale:'🏥',
+  sein:'', digestif:'', poumon:'', orl:'', gyneco:'',
+  uro:'', hemato:'', neuro:'', dermato:'', os:'',
+  pediatrique:'', palliative:'', generale:'',
 };
 
 function StatutBadge({ statut, label }) {
@@ -80,7 +80,7 @@ export default function RCPPage() {
       {/* Prochaines RCPs */}
       {prochaines.length > 0 && (
         <div style={{ background:'var(--bg-card)', border:'1px solid rgba(0,168,255,0.2)', borderRadius:'var(--radius-md)', padding:'14px 18px', marginBottom:20 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:'#00a8ff', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 }}>📅 Prochaines réunions planifiées</div>
+          <div style={{ fontSize:11, fontWeight:700, color:'#00a8ff', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 }}>Prochaines réunions planifiées</div>
           <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
             {prochaines.slice(0,4).map(r => (
               <Link key={r.id} to={`/rcp/${r.id}`} style={{ textDecoration:'none' }}>
@@ -89,7 +89,7 @@ export default function RCPPage() {
                   onMouseLeave={e => e.currentTarget.style.background='rgba(0,168,255,0.08)'}
                 >
                   <div style={{ fontSize:12, fontWeight:600, color:'var(--text-primary)', marginBottom:2 }}>
-                    {TYPE_ICONS[r.type_rcp] || '🏥'} {r.titre}
+                    {TYPE_ICONS[r.type_rcp]} {r.titre}
                   </div>
                   <div style={{ fontSize:10, color:'#00a8ff', fontFamily:'var(--font-mono)' }}>
                     {new Date(r.date_reunion).toLocaleDateString('fr-DZ', { day:'numeric', month:'short' })} à {r.heure_debut?.slice(0,5)}
@@ -140,7 +140,6 @@ export default function RCPPage() {
           </div>
         ) : reunions.length === 0 ? (
           <div style={{ background:'var(--bg-card)', border:'1px solid var(--border-light)', borderRadius:'var(--radius-md)', padding:56, textAlign:'center' }}>
-            <div style={{ fontSize:40, marginBottom:12 }}>🏥</div>
             <div style={{ fontSize:14, color:'var(--text-muted)', marginBottom:16 }}>Aucune réunion RCP trouvée</div>
             <Link to="/rcp/nouveau"><button style={{ padding:'8px 20px', background:'linear-gradient(135deg,#00a8ff,#0080cc)', border:'none', borderRadius:8, color:'#fff', cursor:'pointer' }}>Créer la première RCP</button></Link>
           </div>
@@ -155,25 +154,25 @@ export default function RCPPage() {
               {/* Infos principales */}
               <div style={{ flex:1, minWidth:200 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                  <span style={{ fontSize:20 }}>{TYPE_ICONS[r.type_rcp] || '🏥'}</span>
+                  <span style={{ fontSize:20 }}>{TYPE_ICONS[r.type_rcp]}</span>
                   <div>
                     <div style={{ fontWeight:700, fontSize:14, color:'var(--text-primary)', fontFamily:'var(--font-display)' }}>{r.titre}</div>
                     <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:1 }}>{r.type_label}</div>
                   </div>
                 </div>
                 <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
-                  <InfoChip icon="📅" val={new Date(r.date_reunion).toLocaleDateString('fr-DZ', { weekday:'long', day:'numeric', month:'long', year:'numeric' })} />
-                  <InfoChip icon="⏰" val={`${r.heure_debut?.slice(0,5)}${r.heure_fin ? ' – '+r.heure_fin.slice(0,5) : ''}`} />
-                  {r.lieu && <InfoChip icon="📍" val={r.lieu} />}
-                  {r.coordinateur_nom && <InfoChip icon="👨‍⚕️" val={r.coordinateur_nom} />}
+                  <InfoChip val={new Date(r.date_reunion).toLocaleDateString('fr-DZ', { weekday:'long', day:'numeric', month:'long', year:'numeric' })} />
+                  <InfoChip val={`${r.heure_debut?.slice(0,5)}${r.heure_fin ? ' – '+r.heure_fin.slice(0,5) : ''}`} />
+                  {r.lieu && <InfoChip val={r.lieu} />}
+                  {r.coordinateur_nom && <InfoChip val={r.coordinateur_nom} />}
                 </div>
               </div>
               {/* Métriques + statut */}
               <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8 }}>
                 <StatutBadge statut={r.statut} label={r.statut_label} />
                 <div style={{ display:'flex', gap:12 }}>
-                  <Metric icon="📋" val={r.nombre_dossiers} label="dossiers" color="#9b8afb" />
-                  <Metric icon="👥" val={r.nombre_membres_presents} label="membres" color="#00a8ff" />
+                  <Metric val={r.nombre_dossiers} label="dossiers" color="#9b8afb" />
+                  <Metric val={r.nombre_membres_presents} label="membres" color="#00a8ff" />
                 </div>
               </div>
             </div>
@@ -184,19 +183,19 @@ export default function RCPPage() {
   );
 }
 
-function InfoChip({ icon, val }) {
+function InfoChip({ val }) {
   return (
     <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11.5, color:'var(--text-secondary)' }}>
-      <span style={{ fontSize:11 }}>{icon}</span>{val}
+      {val}
     </span>
   );
 }
 
-function Metric({ icon, val, label, color }) {
+function Metric({ val, label, color }) {
   return (
     <div style={{ textAlign:'center' }}>
       <div style={{ fontSize:16, fontWeight:700, color, fontFamily:'var(--font-display)' }}>{val}</div>
-      <div style={{ fontSize:9, color:'var(--text-muted)', textTransform:'uppercase' }}>{icon} {label}</div>
+      <div style={{ fontSize:9, color:'var(--text-muted)', textTransform:'uppercase' }}>{label}</div>
     </div>
   );
 }

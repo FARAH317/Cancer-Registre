@@ -195,7 +195,7 @@ export default function ExportsPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           <div>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 4 }}>
-              📤 Centre d'export — RegistreCancer.dz
+               Centre d'export — RegistreCancer.dz
             </h2>
             <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
               Générez des rapports PDF, des fichiers Excel et des exports CanReg5 (IARC) depuis vos données.
@@ -222,10 +222,10 @@ export default function ExportsPage() {
       <FilterPanel filters={filters} onChange={setFilters} />
 
       {/* ── Section PDF ────────────────────────────────────────── */}
-      <SectionTitle icon="📄" title="Rapports PDF" subtitle="Documents formatés, prêts à imprimer ou partager" />
+      <SectionTitle  title="Rapports PDF" subtitle="Documents formatés, prêts à imprimer ou partager" />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 28 }}>
         <ExportCard
-          icon="📊" title="Rapport épidémiologique" format="PDF"
+           title="Rapport épidémiologique" format="PDF"
           color="#ff4d6a"
           description="Rapport complet avec KPIs, répartition par sexe, top cancers, incidence par wilaya et distribution par stade AJCC. Mise en page professionnelle avec header et footer."
           tags={['KPIs', 'Top cancers', 'Wilayas', 'Stades AJCC', 'Répartition H/F']}
@@ -233,7 +233,7 @@ export default function ExportsPage() {
           onExport={() => run('rapportPdf', () => exportsService.rapportPdf({ annee: f.annee }))}
         />
         <ExportCard
-          icon="👤" title="Fiche patient individuelle" format="PDF"
+           title="Fiche patient individuelle" format="PDF"
           color="#9b8afb"
           description="Fiche complète d'un patient avec identité, statuts cliniques, liste des diagnostics et historique des traitements. Entrez l'ID du patient ci-dessous."
           tags={['Identité', 'Diagnostics', 'Traitements', 'Statut vital']}
@@ -247,10 +247,10 @@ export default function ExportsPage() {
       <PatientPdfExport loading={loading.fichePdf} onExport={(pid) => run('fichePdf', () => exportsService.fichePatientPdf(pid))} />
 
       {/* ── Section Excel ────────────────────────────────────────── */}
-      <SectionTitle icon="📊" title="Exports Excel (XLSX)" subtitle="Fichiers tabulés avec mise en forme, filtres automatiques et graphiques" />
+      <SectionTitle  title="Exports Excel (XLSX)" subtitle="Fichiers tabulés avec mise en forme, filtres automatiques et graphiques" />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
         <ExportCard
-          icon="👥" title="Liste des patients" format="XLSX"
+           title="Liste des patients" format="XLSX"
           color="#00a8ff"
           description="Tous les champs patients : identité, wilaya, statut dossier, statut vital, médecin référent. Filtres automatiques Excel activés."
           tags={['Identité complète', 'Wilaya', 'Statuts', 'Filtres auto']}
@@ -259,7 +259,7 @@ export default function ExportsPage() {
           onExport={() => run('patientsXlsx', () => exportsService.patientsXlsx({ annee: f.annee, sexe: f.sexe, wilaya: f.wilaya, statut: f.statut }))}
         />
         <ExportCard
-          icon="🔬" title="Diagnostics" format="XLSX"
+           title="Diagnostics" format="XLSX"
           color="#9b8afb"
           description="Liste des diagnostics avec topographie ICD-O-3, morphologie, stade AJCC, TNM et base diagnostique."
           tags={['ICD-O-3', 'TNM', 'Stade AJCC', 'Morphologie']}
@@ -268,7 +268,7 @@ export default function ExportsPage() {
           onExport={() => run('diagXlsx', () => exportsService.diagnosticsXlsx({ annee: f.annee, wilaya: f.wilaya }))}
         />
         <ExportCard
-          icon="📈" title="Rapport épidémiologique" format="XLSX"
+           title="Rapport épidémiologique" format="XLSX"
           color="#00e5a0"
           description="Classeur multi-feuilles : couverture KPIs, incidence par wilaya avec graphique, top cancers, distribution par stade avec camembert."
           tags={['Multi-feuilles', 'Graphiques', 'Wilayas', 'Stades']}
@@ -278,10 +278,10 @@ export default function ExportsPage() {
       </div>
 
       {/* ── Section CanReg5 ──────────────────────────────────────── */}
-      <SectionTitle icon="🌍" title="Export CanReg5 (IARC)" subtitle="Format standardisé pour les registres du cancer — compatible avec le logiciel CanReg5 de l'IARC" />
+      <SectionTitle  title="Export CanReg5 (IARC)" subtitle="Format standardisé pour les registres du cancer — compatible avec le logiciel CanReg5 de l'IARC" />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 28 }}>
         <ExportCard
-          icon="🌍" title="Export CanReg5" format="TXT/CSV"
+           title="Export CanReg5" format="TXT/CSV"
           color="#f5a623"
           description="Export au format CanReg5 (IARC) — fichier texte tabulé avec colonnes standardisées : numéro registre, sexe, date naissance, topographie ICD-O, morphologie, comportement, base diagnostique et statut vital."
           tags={['Format IARC', 'ICD-O-3', 'Compatible CanReg5', 'UTF-8']}
@@ -347,7 +347,7 @@ function PatientPdfExport({ loading, onExport }) {
         />
         <button onClick={doSearch} disabled={searching}
           style={{ padding: '9px 16px', background: 'rgba(155,138,251,0.15)', border: '1px solid rgba(155,138,251,0.3)', borderRadius: 'var(--radius-md)', color: '#9b8afb', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
-          {searching ? '...' : '🔍 Chercher'}
+          {searching ? '...' : 'Chercher'}
         </button>
       </div>
 
@@ -400,14 +400,14 @@ function ExportHistory() {
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: '16px 20px' }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 }}>
-        📋 Formats supportés
+         Formats supportés
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         {[
-          { fmt: 'PDF',      icon: '📄', color: '#ff4d6a', desc: 'ReportLab — mise en page professionnelle, header/footer' },
-          { fmt: 'XLSX',     icon: '📊', color: '#00a8ff', desc: 'openpyxl — multi-feuilles, graphiques, filtres auto' },
-          { fmt: 'CSV/TXT',  icon: '🌍', color: '#f5a623', desc: 'CanReg5 IARC — format tabulé standard international' },
-          { fmt: 'JSON/API', icon: '🔌', color: '#9b8afb', desc: 'Endpoints REST disponibles pour intégration tierce' },
+          { fmt: 'PDF',       color: '#ff4d6a', desc: 'ReportLab — mise en page professionnelle, header/footer' },
+          { fmt: 'XLSX',      color: '#00a8ff', desc: 'openpyxl — multi-feuilles, graphiques, filtres auto' },
+          { fmt: 'CSV/TXT',   color: '#f5a623', desc: 'CanReg5 IARC — format tabulé standard international' },
+          { fmt: 'JSON/API',  color: '#9b8afb', desc: 'Endpoints REST disponibles pour intégration tierce' },
         ].map(f => (
           <div key={f.fmt} style={{ padding: '12px', background: 'var(--bg-elevated)', border: `1px solid ${f.color}15`, borderRadius: 8 }}>
             <div style={{ fontSize: 18, marginBottom: 6 }}>{f.icon}</div>

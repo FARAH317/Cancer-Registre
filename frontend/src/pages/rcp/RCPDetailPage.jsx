@@ -18,7 +18,7 @@ const DECISION_COLORS = {
   abstention:'#94a3b8', autre:'#9ca3af',
 };
 const PRIORITE_COLORS = { urgente:'#ff4d6a', rapide:'#f5a623', normale:'#00a8ff', differee:'#9ca3af' };
-const TYPE_ICONS = { sein:'🎀', digestif:'🫁', poumon:'💨', orl:'👂', gyneco:'♀️', uro:'🫘', hemato:'🩸', neuro:'🧠', dermato:'🫀', os:'🦴', pediatrique:'👶', palliative:'🕊️', generale:'🏥' };
+const TYPE_ICONS = { sein:'', digestif:'', poumon:'', orl:'', gyneco:'', uro:'', hemato:'', neuro:'', dermato:'', os:'', pediatrique:'', palliative:'', generale:'' };
 
 export default function RCPDetailPage() {
   const { id }   = useParams();
@@ -80,7 +80,7 @@ export default function RCPDetailPage() {
       <div style={{ background:'var(--bg-card)', border:`1px solid ${sc.color}20`, borderRadius:'var(--radius-lg)', padding:'20px 24px', marginBottom:20 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:14 }}>
           <div style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
-            <div style={{ fontSize:32, lineHeight:1 }}>{TYPE_ICONS[data.type_rcp] || '🏥'}</div>
+            <div style={{ fontSize:32, lineHeight:1 }}>{TYPE_ICONS[data.type_rcp]}</div>
             <div>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6, flexWrap:'wrap' }}>
                 <h2 style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:800, color:'var(--text-primary)' }}>{data.titre}</h2>

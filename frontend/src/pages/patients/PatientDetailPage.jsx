@@ -66,7 +66,7 @@ export default function PatientDetailPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 22, flexShrink: 0,
           }}>
-            {patient.sexe === 'F' ? '👩' : '👨'}
+            
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
@@ -79,10 +79,10 @@ export default function PatientDetailPage() {
               }}>{patient.statut_label}</span>
             </div>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              <Info icon="🗂" val={patient.registration_number} mono />
-              <Info icon="📅" val={patient.age ? `${patient.age} ans` : '—'} />
-              <Info icon="📍" val={patient.wilaya || '—'} />
-              <Info icon="👨‍⚕️" val={patient.medecin_referent_info?.full_name || '—'} />
+              <Info  val={patient.registration_number} mono />
+              <Info  val={patient.age ? `${patient.age} ans` : '—'} />
+              <Info  val={patient.wilaya || '—'} />
+              <Info  val={patient.medecin_referent_info?.full_name || '—'} />
             </div>
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function PatientDetailPage() {
               color: 'var(--text-primary)', fontSize: 13, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
-              ✏️ Modifier
+               Modifier
             </button>
           </Link>
           <Link to="/patients" style={{ textDecoration: 'none' }}>
