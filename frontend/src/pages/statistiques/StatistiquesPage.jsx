@@ -396,11 +396,11 @@ export default function StatistiquesPage() {
           {/* Totaux par type */}
           <div style={{ gridColumn:'1 / -1', display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:10 }}>
             {trtData && [
-              { label:'Chimiothérapies',  val:trtData.totaux?.chimiotherapie,  color:'#00a8ff', icon:'💊' },
-              { label:'Radiothérapies',   val:trtData.totaux?.radiotherapie,   color:'#f5a623', icon:'☢️'  },
-              { label:'Chirurgies',       val:trtData.totaux?.chirurgie,       color:'#ff4d6a', icon:'🔪' },
-              { label:'Hormonothérapies', val:trtData.totaux?.hormonotherapie, color:'#00e5a0', icon:'🧬' },
-              { label:'Immunothérapies',  val:trtData.totaux?.immunotherapie,  color:'#c084fc', icon:'🛡️' },
+              { label:'Chimiothérapies',  val:trtData.totaux?.chimiotherapie,  color:'#00a8ff' },
+              { label:'Radiothérapies',   val:trtData.totaux?.radiotherapie,   color:'#f5a623'  },
+              { label:'Chirurgies',       val:trtData.totaux?.chirurgie,       color:'#ff4d6a' },
+              { label:'Hormonothérapies', val:trtData.totaux?.hormonotherapie, color:'#00e5a0' },
+              { label:'Immunothérapies',  val:trtData.totaux?.immunotherapie,  color:'#c084fc' },
             ].map(t => (
               <div key={t.label} style={{ background:'var(--bg-card)', border:`1px solid ${t.color}20`, borderRadius:'var(--radius-md)', padding:'14px 16px', textAlign:'center' }}>
                 <div style={{ fontSize:22, marginBottom:6 }}>{t.icon}</div>
