@@ -12,7 +12,6 @@ class Patient(models.Model):
     class Sexe(models.TextChoices):
         MASCULIN = 'M', 'Masculin'
         FEMININ  = 'F', 'Féminin'
-        INCONNU  = 'U', 'Inconnu'
 
     class StatutVital(models.TextChoices):
         VIVANT    = 'vivant',  'Vivant'
@@ -50,18 +49,23 @@ class Patient(models.Model):
         INCONNU       = 'INC', 'Inconnu'
 
     # ── Identifiant CanReg5 ──────────────────────────────────────
-    registration_number = models.CharField(max_length=20, unique=True, blank=True)
-    id_national = models.CharField(max_length=20, blank=True, help_text="Numéro national d'identité")
+    registration_number   = models.CharField(max_length=20, unique=True, blank=True)
+    id_national           = models.CharField(max_length=20, blank=True, help_text="Numéro national d'identité")
+    num_securite_sociale  = models.CharField(
+        max_length=30, blank=True,
+        verbose_name='N° sécurité sociale',
+        help_text='Numéro de sécurité sociale / assurance maladie',
+    )
 
     # ── Identité ─────────────────────────────────────────────────
-    nom             = models.CharField(max_length=100)
-    prenom          = models.CharField(max_length=100)
-    nom_jeune_fille = models.CharField(max_length=100, blank=True)
-    sexe            = models.CharField(max_length=1, choices=Sexe.choices)
-    date_naissance  = models.DateField(null=True, blank=True)
-    age_diagnostic  = models.PositiveSmallIntegerField(null=True, blank=True)
-    lieu_naissance  = models.CharField(max_length=100, blank=True)
-    nationalite     = models.CharField(max_length=50, default='Algérienne')
+    nom            = models.CharField(max_length=100)
+    prenom         = models.CharField(max_length=100)
+    # nom_jeune_fille supprimé (non nécessaire)
+    sexe           = models.CharField(max_length=1, choices=Sexe.choices)
+    date_naissance = models.DateField(null=True, blank=True)
+    age_diagnostic = models.PositiveSmallIntegerField(null=True, blank=True)
+    lieu_naissance = models.CharField(max_length=100, blank=True)
+    nationalite    = models.CharField(max_length=50, default='Algérienne')
 
     # ── Coordonnées ──────────────────────────────────────────────
     adresse     = models.TextField(blank=True)
@@ -93,6 +97,8 @@ class Patient(models.Model):
     # ── Antécédents ───────────────────────────────────────────────
     antecedents_personnels = models.TextField(blank=True)
     antecedents_familiaux  = models.TextField(blank=True)
+
+    # ── Habitudes de vie ──────────────────────────────────────────
     tabagisme = models.CharField(
         max_length=20,
         choices=[('non','Non-fumeur'),('ex','Ex-fumeur'),('actif','Fumeur actif'),('inconnu','Inconnu')],
@@ -102,6 +108,22 @@ class Patient(models.Model):
         max_length=20,
         choices=[('non','Non'),('oui','Oui'),('inconnu','Inconnu')],
         default='inconnu'
+    )
+    activite_physique = models.CharField(
+        max_length=20,
+        choices=[('sedentaire','Sédentaire'),('moderee','Modérée'),('active','Active'),('inconnu','Inconnu')],
+        default='inconnu',
+        verbose_name='Activité physique',
+    )
+    alimentation = models.CharField(
+        max_length=50,
+        choices=[
+            ('equilibree','Équilibrée'),('grasse','Riche en graisses'),
+            ('sucree','Riche en sucres'),('vegetarienne','Végétarienne/Végane'),
+            ('inconnu','Inconnu'),
+        ],
+        default='inconnu',
+        verbose_name='Alimentation',
     )
 
     # ── Statut ────────────────────────────────────────────────────
@@ -127,7 +149,7 @@ class Patient(models.Model):
     cree_par = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name='patients_crees'
     )
-    notes    = models.TextField(blank=True)
+    notes     = models.TextField(blank=True)
     est_actif = models.BooleanField(default=True)
 
     class Meta:
@@ -165,6 +187,12 @@ class Patient(models.Model):
                 (self.date_naissance.month, self.date_naissance.day)
             )
         return self.age_diagnostic
+
+    def get_qr_url(self, base_url=None):
+        """Retourne l'URL mobile encodée dans le QR code."""
+        from django.conf import settings
+        base = base_url or getattr(settings, 'MOBILE_APP_BASE_URL', 'https://votre-app.com/patient')
+        return f"{base}/{self.id}?token={self.registration_number}"
 
 
 class ContactUrgence(models.Model):
