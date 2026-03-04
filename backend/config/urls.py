@@ -17,7 +17,7 @@ urlpatterns = [
     path('api/v1/registry/',    include('apps.registry.urls')),
     path('api/v1/suivi/',       include('apps.suivi.urls')),
     path('api/v1/rcp/',         include('apps.rcp.urls')),
-    path('api/v1/exports/',     include('apps.exports.urls')),
+    path('api/v1/sig/',         include('apps.sig.urls')),
 
     # ==============================
     # Stats & IA
