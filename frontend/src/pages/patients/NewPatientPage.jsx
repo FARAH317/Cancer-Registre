@@ -7,6 +7,9 @@ import { apiClient } from '../../services/apiClient';
 import { AppLayout } from '../../components/layout/Sidebar';
 import ComparaisonFusionModal from '../../components/patients/ComparaisonFusionModal';
 import { WILAYAS, COMMUNES_PAR_WILAYA } from './communesAlgerie';
+import VoiceDictation from '../../components/voice/VoiceDictation';
+import useCustomFields from '../../hooks/useCustomFields';
+import CustomFieldsSection from '../../components/custom_fields/CustomFieldsSection';
 
 const STEPS = [
   { label: 'Identite' },
@@ -21,15 +24,25 @@ export default function NewPatientPage() {
   const [saved, setSaved]           = useState([{}, {}, {}, {}]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Detection doublon
-  const [suspect, setSuspect]         = useState(null);
+  const [suspect,     setSuspect]     = useState(null);
   const [donneesForm, setDonneesForm] = useState(null);
-  const [showModal, setShowModal]     = useState(false);
+  const [showModal,   setShowModal]   = useState(false);
 
-  const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm({ mode: 'onSubmit' });
+  const { register, handleSubmit, watch, setValue, formState: { errors }, reset } =
+    useForm({ mode: 'onSubmit' });
+
   const watchedWilaya = watch('wilaya');
 
-  // Construire payload final depuis les 4 steps
+  // ── Champs personnalisés ──────────────────────────────────
+  const {
+    champs:    champsCustom,
+    valeurs:   valeursCustom,
+    setValeur,
+    sauvegarder: sauvegarderCustom,
+    loading:   loadingCustom,
+  } = useCustomFields({ module: 'patient', objectId: null });
+
+  // ── Helpers ───────────────────────────────────────────────
   const buildPayload = (steps) => {
     const payload = Object.assign({}, ...steps);
     const contacts = [];
@@ -55,31 +68,21 @@ export default function NewPatientPage() {
       return;
     }
 
-    // Etape finale : verifier doublon AVANT de creer
     setSubmitting(true);
     try {
       const payload = buildPayload(updated);
-
       const { data: res } = await apiClient.post('/patients/verifier_doublon/', {
-        nom:            payload.nom,
-        prenom:         payload.prenom,
-        date_naissance: payload.date_naissance,
-        id_national:    payload.id_national,
+        nom: payload.nom, prenom: payload.prenom,
+        date_naissance: payload.date_naissance, id_national: payload.id_national,
       });
-
       if (res.has_doublon && res.suspects.length > 0) {
-        setDonneesForm(payload);
-        setSuspect(res.suspects[0]);
-        setShowModal(true);
-        setSubmitting(false);
-        return;
+        setDonneesForm(payload); setSuspect(res.suspects[0]);
+        setShowModal(true); setSubmitting(false); return;
       }
-
       await creerPatient(payload);
     } catch (err) {
       console.warn('Verification doublon echouee, creation directe', err);
-      const payload = buildPayload(updated);
-      await creerPatient(payload);
+      await creerPatient(buildPayload(updated));
     } finally {
       setSubmitting(false);
     }
@@ -88,34 +91,34 @@ export default function NewPatientPage() {
   const creerPatient = async (payload) => {
     try {
       const { data: patient } = await patientService.create(payload);
+      // Sauvegarder les champs personnalisés après création
+      if (Object.keys(valeursCustom).length > 0) {
+        await sauvegarderCustom(patient.id);
+      }
       toast.success('Patient ' + patient.registration_number + ' cree avec succes !');
       navigate('/patients/' + patient.id);
     } catch (err) {
       const errs = err.response?.data;
-      const msg = errs ? Object.values(errs).flat().join(' ') : 'Erreur lors de la creation.';
-      toast.error(msg);
+      toast.error(errs ? Object.values(errs).flat().join(' ') : 'Erreur lors de la creation.');
     }
   };
 
   const handleFusionner = async (idPrincipal, idSecondaire, champsFusion) => {
     try {
       const { data } = await apiClient.post('/patients/' + idPrincipal + '/fusionner/', {
-        id_secondaire: idSecondaire,
-        champs_fusion: champsFusion,
+        id_secondaire: idSecondaire, champs_fusion: champsFusion,
       });
       toast.success(data.message || 'Dossier fusionne avec succes');
       setShowModal(false);
       navigate('/patients/' + idPrincipal);
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Erreur lors de la fusion';
-      toast.error(msg);
+      toast.error(err.response?.data?.detail || 'Erreur lors de la fusion');
       throw err;
     }
   };
 
   const handleForcerCreation = async () => {
-    setShowModal(false);
-    setSubmitting(true);
+    setShowModal(false); setSubmitting(true);
     await creerPatient(donneesForm);
     setSubmitting(false);
   };
@@ -125,9 +128,10 @@ export default function NewPatientPage() {
   return (
     <AppLayout title="Nouveau Patient">
       <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes spin    { to { transform: rotate(360deg); } }
+        @keyframes fadeUp  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
       `}</style>
+
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
 
         {/* Stepper */}
@@ -140,20 +144,31 @@ export default function NewPatientPage() {
               cursor: i < step ? 'pointer' : 'default', transition: 'all 0.2s',
             }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: i === step ? 'var(--accent)' : i < step ? 'var(--success)' : 'var(--text-muted)' }}>
-                {i < step ? '+ ' : ''}{s.label}
+                {i < step ? '✓ ' : ''}{s.label}
               </div>
             </div>
           ))}
         </div>
 
-        {/* Formulaire */}
         <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-lg)', padding: '28px 32px' }}>
           <form onSubmit={handleSubmit(onStepSubmit)}>
 
-            {/* Step 0 : Identite */}
+            {/* ══ STEP 0 : Identité ══════════════════════════════════ */}
             {step === 0 && (
               <div style={{ animation: 'fadeUp 0.3s ease' }}>
                 <SectionTitle>Identite du patient</SectionTitle>
+
+                {/* Saisie vocale */}
+                <VoiceDictation
+                  formType="patient"
+                  onFieldsExtracted={(fields) => {
+                    Object.entries(fields).forEach(([key, value]) => {
+                      setValue(key, value, { shouldValidate: true });
+                    });
+                  }}
+                />
+                <div style={{ margin: '12px 0', height: 1, background: 'var(--border)' }} />
+
                 <Row>
                   <Field label="Nom *" error={errors.nom?.message}>
                     <input {...register('nom', { required: 'Nom requis' })} placeholder="BENALI" style={inputStyle(errors.nom)} />
@@ -197,10 +212,22 @@ export default function NewPatientPage() {
               </div>
             )}
 
-            {/* Step 1 : Coordonnees */}
+            {/* ══ STEP 1 : Coordonnées ═══════════════════════════════ */}
             {step === 1 && (
               <div style={{ animation: 'fadeUp 0.3s ease' }}>
                 <SectionTitle>Coordonnees et Adresse</SectionTitle>
+
+                {/* Saisie vocale */}
+                <VoiceDictation
+                  formType="patient"
+                  onFieldsExtracted={(fields) => {
+                    Object.entries(fields).forEach(([key, value]) => {
+                      setValue(key, value, { shouldValidate: true });
+                    });
+                  }}
+                />
+                <div style={{ margin: '12px 0', height: 1, background: 'var(--border)' }} />
+
                 <Field label="Adresse complete">
                   <textarea {...register('adresse')} placeholder="Rue, N, quartier..." rows={2} style={{ ...inputStyle(), resize: 'vertical', lineHeight: 1.5 }} />
                 </Field>
@@ -218,7 +245,7 @@ export default function NewPatientPage() {
                         {communesDispo.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     ) : (
-                      <div style={{ ...inputStyle(), display: 'flex', alignItems: 'center', color: 'var(--text-muted)', fontSize: 12.5, cursor: 'default' }}>
+                      <div style={{ ...inputStyle(), display: 'flex', alignItems: 'center', color: 'var(--text-muted)', fontSize: 12.5 }}>
                         Choisir d'abord une wilaya
                       </div>
                     )}
@@ -244,7 +271,7 @@ export default function NewPatientPage() {
               </div>
             )}
 
-            {/* Step 2 : Profil */}
+            {/* ══ STEP 2 : Profil ════════════════════════════════════ */}
             {step === 2 && (
               <div style={{ animation: 'fadeUp 0.3s ease' }}>
                 <SectionTitle>Profil socio-demographique</SectionTitle>
@@ -303,7 +330,7 @@ export default function NewPatientPage() {
               </div>
             )}
 
-            {/* Step 3 : Antecedents */}
+            {/* ══ STEP 3 : Antécédents ═══════════════════════════════ */}
             {step === 3 && (
               <div style={{ animation: 'fadeUp 0.3s ease' }}>
                 <SectionTitle>Antecedents medicaux</SectionTitle>
@@ -342,7 +369,17 @@ export default function NewPatientPage() {
                     </select>
                   </Field>
                 </Row>
-                {/* Recapitulatif */}
+
+                {/* ✅ CHAMPS PERSONNALISÉS */}
+                <CustomFieldsSection
+                  module="patient"
+                  champs={champsCustom}
+                  valeurs={valeursCustom}
+                  onChange={setValeur}
+                  loading={loadingCustom}
+                />
+
+                {/* Récapitulatif */}
                 <div style={{ marginTop: 20, padding: '14px 16px', background: 'var(--accent-dim)', border: '1px solid rgba(0,168,255,0.2)', borderRadius: 'var(--radius-md)' }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)', marginBottom: 8 }}>Recapitulatif du dossier</div>
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
@@ -360,26 +397,30 @@ export default function NewPatientPage() {
                 <button type="button" onClick={() => setStep(s => s - 1)} style={{
                   flex: '0 0 110px', padding: '12px', background: 'var(--bg-elevated)',
                   border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
-                  color: 'var(--text-secondary)', fontSize: 13.5, cursor: 'pointer', fontFamily: 'var(--font-body)',
+                  color: 'var(--text-secondary)', fontSize: 13.5, cursor: 'pointer',
                 }}>Retour</button>
               )}
               <button type="submit" disabled={submitting} style={{
                 flex: 1, padding: '12px',
-                background: step === 3 ? 'linear-gradient(135deg, var(--success), #00b38a)' : 'linear-gradient(135deg, #00a8ff, #0080cc)',
+                background: step === 3
+                  ? 'linear-gradient(135deg, var(--success), #00b38a)'
+                  : 'linear-gradient(135deg, #00a8ff, #0080cc)',
                 border: 'none', borderRadius: 'var(--radius-md)',
-                color: '#fff', fontSize: 13.5, fontWeight: 600, fontFamily: 'var(--font-display)',
+                color: '#fff', fontSize: 13.5, fontWeight: 600,
                 cursor: submitting ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 opacity: submitting ? 0.7 : 1,
               }}>
-                {submitting ? <><Spinner /> Verification...</> : step === 3 ? 'Enregistrer le patient' : 'Continuer'}
+                {submitting
+                  ? <><Spinner /> Verification...</>
+                  : step === 3 ? 'Enregistrer le patient' : 'Continuer'}
               </button>
             </div>
+
           </form>
         </div>
       </div>
 
-      {/* Modal doublon detecte */}
       {showModal && suspect && donneesForm && (
         <ComparaisonFusionModal
           donneesNouveauPatient={donneesForm}
@@ -394,6 +435,7 @@ export default function NewPatientPage() {
   );
 }
 
+// ── Helpers ───────────────────────────────────────────────────
 function SectionTitle({ children, style: s }) {
   return <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 18, fontFamily: 'var(--font-display)', ...s }}>{children}</h3>;
 }
@@ -412,7 +454,7 @@ function Field({ label, error, children }) {
 function Spinner() {
   return <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />;
 }
-const inputStyle = (err) => ({
+const inputStyle  = (err) => ({
   width: '100%', padding: '10px 12px', background: 'var(--bg-elevated)',
   border: '1px solid ' + (err ? 'var(--danger)' : 'var(--border-light)'),
   borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontSize: 13.5,

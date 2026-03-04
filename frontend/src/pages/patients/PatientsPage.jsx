@@ -172,7 +172,6 @@ export default function PatientsPage() {
           </div>
         ) : patients.length === 0 ? (
           <div style={{ padding: 64, textAlign: 'center' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
             <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>Aucun patient trouvé</div>
           </div>
         ) : (

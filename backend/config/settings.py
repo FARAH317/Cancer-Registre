@@ -6,8 +6,13 @@ Registre National du Cancer - Algérie
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
+import os
 
+# ─────────────────────────────────────────────
+# Base
+# ─────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
+GROQ_API_KEY = config('GROQ_API_KEY', default=None)
 
 # ─────────────────────────────────────────────
 # Security
@@ -51,7 +56,9 @@ LOCAL_APPS = [
     'apps.suivi',
     'apps.stats',
     'apps.rcp',
-    'apps.exports',
+    'apps.voice', 
+    'apps.custom_fields',
+    'apps.sig',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -179,7 +186,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
     "https://patientlifestyleform.vercel.app",
-    "https://devona-copasetic-chieko.ngrok-free.dev",
+    " https://devona-copasetic-chieko.ngrok-free.dev",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

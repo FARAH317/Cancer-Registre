@@ -31,6 +31,7 @@ import RCPDetailPage from './pages/rcp/RCPDetailPage';
 import StatistiquesPage from './pages/statistiques/StatistiquesPage';
 import StatsPage from './pages/stats/StatsPage';
 import AdminPage from './pages/admin/AdminPage';
+import AdminCustomFieldsPage from './pages/admin/AdminCustomFieldsPage';
 
 import { AppLayout } from './components/layout/Sidebar';
 import AccessDenied, { RequirePermission } from './components/auth/AccessDenied';
@@ -265,6 +266,11 @@ function App() {
             <AdminPage />
           </PermRoute>
         } />
+        <Route path="/admin/champs-personnalises" element={
+          <PermRoute permission="manageUsers">
+            <AdminCustomFieldsPage />
+          </PermRoute>
+        } />
 
         {/* ───────── Accès refusé ───────── */}
         <Route path="/acces-refuse" element={
@@ -272,6 +278,7 @@ function App() {
             <AccessDenied />
           </ProtectedRoute>
         } />
+       
 
         {/* ───────── Redirects ───────── */}
         <Route path="/" element={<Navigate to="/login" replace />} />

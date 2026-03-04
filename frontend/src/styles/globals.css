@@ -90,7 +90,7 @@ body {
 }
 
 /* ── Extra utilities added for patients module ── */
-select option { background: #141926; }
+select option { background: #e6e7eb; }
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
