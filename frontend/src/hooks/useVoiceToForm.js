@@ -32,7 +32,10 @@ export default function useVoiceToForm(formType = 'patient') {
       });
 
       if (!response.ok) {
-        throw new Error(`Erreur serveur: ${response.status}`);
+        // try to read error text from backend to help debugging
+        let errText = '';
+        try { errText = await response.text(); } catch {}
+        throw new Error(`Erreur serveur: ${response.status} ${errText}`);
       }
 
       const data   = await response.json();

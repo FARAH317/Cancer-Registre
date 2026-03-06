@@ -51,6 +51,7 @@ const NAV_CONFIG = [
       { path: '/admin',   label: 'Administration',     icon: SettingsIcon, permission: 'manageUsers'  },
     ],
   },
+  
 ];
 
 export default function Sidebar() {

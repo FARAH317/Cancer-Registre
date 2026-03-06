@@ -59,6 +59,7 @@ LOCAL_APPS = [
     'apps.voice', 
     'apps.custom_fields',
     'apps.sig',
+    'apps.exports',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

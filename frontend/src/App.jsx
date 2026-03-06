@@ -28,6 +28,8 @@ import RCPPage from './pages/rcp/RCPPage';
 import NewRCPPage, { NewDossierRCPPage } from './pages/rcp/NewRCPPage';
 import RCPDetailPage from './pages/rcp/RCPDetailPage';
 
+import CarteSig from './pages/sig/SigPagev2';
+
 import StatistiquesPage from './pages/statistiques/StatistiquesPage';
 import StatsPage from './pages/stats/StatsPage';
 import AdminPage from './pages/admin/AdminPage';
@@ -230,10 +232,10 @@ function App() {
 
         {/* ───────── Carte SIG ───────── */}
         <Route path="/carte" element={
-          <PermRoute permission="viewMap">
-            <ComingSoon title="Carte SIG" />
-          </PermRoute>
-        } />
+  <PermRoute permission="viewMap">
+    <CarteSig />
+  </PermRoute>
+} />
 
         {/* ───────── RCP ───────── */}
         <Route path="/rcp" element={

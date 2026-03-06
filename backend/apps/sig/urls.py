@@ -1,21 +1,12 @@
-# backend/apps/sig/urls.py
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import (
-    sig_overview, sig_wilaya_detail, sig_stats_nationales,
-    WilayaViewSet, FacteurRisqueViewSet, AlerteViewSet,
-)
-
-router = DefaultRouter()
-router.register(r'wilayas',         WilayaViewSet,         basename='sig-wilaya')
-router.register(r'facteurs-risque', FacteurRisqueViewSet,  basename='sig-facteur')
-router.register(r'alertes',         AlerteViewSet,         basename='sig-alerte')
+from django.urls import path
+from . import views
 
 urlpatterns = [
-    # Vues fonctionnelles (carte interactive)
-    path('overview/',                  sig_overview,         name='sig-overview'),
-    path('wilaya/<int:wilaya_code>/',  sig_wilaya_detail,    name='sig-wilaya-detail'),
-    path('stats-nationales/',          sig_stats_nationales, name='sig-stats-nationales'),
-    # CRUD admin
-    path('', include(router.urls)),
+    path('map-data/', views.get_map_data, name='map-data'),
+    path('all-wilayas/', views.get_all_wilayas_data, name='all-wilayas'),
+    path('statistics/', views.get_statistics, name='statistics'),
+    path('patients/', views.create_patient, name='create-patient'),
+    path('health/', views.health_check, name='health-check'),
+    path('tlemcen-data/', views.get_tlemcen_data, name='tlemcen-data'),
+    path('cancer-statistics/', views.get_cancer_statistics, name='cancer-statistics'),
 ]

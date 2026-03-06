@@ -1,327 +1,486 @@
-"""
-SIG – Carte Oncologique d'Algérie
-Vues API – entièrement branchées sur les modèles réels.
-"""
-from django.db.models import Count, Q, Sum
-from django.utils import timezone
-from rest_framework import viewsets, filters, status
-from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
+from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Count, Q
+from apps.patients.models import Patient
+from apps.diagnostics.models import Diagnostic
+from collections import Counter
 
-from .models import (
-    Wilaya, Commune, FacteurRisque,
-    StatCancerWilaya, StatCancerCommune, AlerteEpidemiologique,
-)
-from .serializers import (
-    WilayaListSerializer, WilayaDetailSerializer,
-    CommuneSerializer, FacteurRisqueSerializer,
-    StatCancerWilayaSerializer, AlerteSerializer,
-)
-
-
-# ─────────────────────────────────────────────────────────────────
-# 1. VUE PRINCIPALE – overview carte (toutes les wilayas)
-# ─────────────────────────────────────────────────────────────────
-
+@csrf_exempt
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def sig_overview(request):
-    """
-    Retourne les statistiques de toutes les wilayas pour alimenter la carte.
-    Utilise le cache StatCancerWilaya si disponible (mis à jour via cron),
-    sinon calcule en temps réel depuis Patient + Diagnostic.
-    """
-    annee     = int(request.query_params.get('annee', timezone.now().year))
-    use_cache = request.query_params.get('use_cache', 'true').lower() == 'true'
-
-    wilayas = Wilaya.objects.all().prefetch_related(
-        'facteurs_risque', 'communes', 'stats_cancer',
-    )
-
-    result         = []
-    total_national = 0
-
-    for wilaya in wilayas:
-        stat_cache = None
-        if use_cache:
-            stat_cache = wilaya.stats_cancer.filter(annee=annee, est_complet=True).first()
-
-        if stat_cache:
-            total         = stat_cache.total_patients
-            cancers       = stat_cache.cancers_json
-            communes_data = stat_cache.communes_json
-            incidence     = float(stat_cache.incidence_pour_100k) if stat_cache.incidence_pour_100k else None
-        else:
-            total, cancers, communes_data, incidence = _compute_wilaya_stats(wilaya)
-
-        total_national += total
-
-        risk_factors = list(
-            FacteurRisque.objects
-            .filter(actif=True)
-            .filter(
-                Q(wilaya=wilaya) |
-                Q(region=wilaya.region, portee='region') |
-                Q(portee='national')
-            )
-            .order_by('ordre')
-            .values('nom', 'niveau', 'icone', 'source')
-        )
-        for rf in risk_factors:
-            rf['niveau_fr'] = _niveau_fr(rf['niveau'])
-
-        alertes = list(wilaya.alertes.filter(active=True).values('niveau', 'titre', 'type_cancer'))
-
+@permission_classes([AllowAny])
+def get_map_data(request):
+    """Get geographic data for the SIG map with all cancer cases by wilaya."""
+    wilayas = [
+        {"code": "01", "name": "Adrar", "lat": 27.8742, "lon": -0.2875},
+        {"code": "02", "name": "Chlef", "lat": 36.1690, "lon": 1.3345},
+        {"code": "03", "name": "Laghouat", "lat": 33.8078, "lon": 2.8628},
+        {"code": "04", "name": "Oum El Bouaghi", "lat": 35.8746, "lon": 7.1132},
+        {"code": "05", "name": "Batna", "lat": 35.5589, "lon": 6.1744},
+        {"code": "06", "name": "Bejaia", "lat": 36.7500, "lon": 5.0567},
+        {"code": "07", "name": "Biskra", "lat": 34.8513, "lon": 5.7241},
+        {"code": "08", "name": "Bechar", "lat": 31.6188, "lon": -2.2179},
+        {"code": "09", "name": "Blida", "lat": 36.5657, "lon": 2.8500},
+        {"code": "10", "name": "Bouira", "lat": 36.3764, "lon": 3.9008},
+        {"code": "11", "name": "Tamanrasset", "lat": 22.7850, "lon": 5.5228},
+        {"code": "12", "name": "Tebessa", "lat": 35.4082, "lon": 8.1257},
+        {"code": "13", "name": "Tlemcen", "lat": 34.6783, "lon": -1.3616},
+        {"code": "14", "name": "Tiaret", "lat": 35.3703, "lon": 1.3270},
+        {"code": "15", "name": "Tizi Ouzou", "lat": 36.7719, "lon": 4.0458},
+        {"code": "16", "name": "Alger", "lat": 36.7538, "lon": 3.0588},
+        {"code": "17", "name": "Djelfa", "lat": 34.6709, "lon": 3.2216},
+        {"code": "18", "name": "Jijel", "lat": 36.8204, "lon": 5.7645},
+        {"code": "19", "name": "Setif", "lat": 36.1912, "lon": 5.4145},
+        {"code": "20", "name": "Saida", "lat": 34.8413, "lon": 0.1519},
+        {"code": "21", "name": "Skikda", "lat": 36.8796, "lon": 6.9092},
+        {"code": "22", "name": "Sidi Bel Abbes", "lat": 35.1899, "lon": -0.6309},
+        {"code": "23", "name": "Annaba", "lat": 36.8964, "lon": 7.7484},
+        {"code": "24", "name": "Guelma", "lat": 36.4621, "lon": 7.4261},
+        {"code": "25", "name": "Constantine", "lat": 36.3650, "lon": 6.6147},
+        {"code": "26", "name": "Medea", "lat": 36.2642, "lon": 2.7536},
+        {"code": "27", "name": "Mostaganem", "lat": 35.9312, "lon": 0.0892},
+        {"code": "28", "name": "Msila", "lat": 35.7069, "lon": 4.5415},
+        {"code": "29", "name": "Mascara", "lat": 35.3965, "lon": 0.0676},
+        {"code": "30", "name": "Ouargla", "lat": 31.9529, "lon": 5.3332},
+        {"code": "31", "name": "Oran", "lat": 35.6938, "lon": -0.6211},
+        {"code": "32", "name": "El Bayadh", "lat": 33.6826, "lon": 1.0265},
+        {"code": "33", "name": "Illizi", "lat": 26.5167, "lon": 8.4667},
+        {"code": "34", "name": "Bordj Bou Arreridj", "lat": 36.0739, "lon": 4.7633},
+        {"code": "35", "name": "Boumerdes", "lat": 36.7534, "lon": 3.4771},
+        {"code": "36", "name": "El Tarf", "lat": 36.7645, "lon": 8.3137},
+        {"code": "37", "name": "Tindouf", "lat": 27.6711, "lon": -7.9189},
+        {"code": "38", "name": "Tissemsilt", "lat": 35.6074, "lon": 1.8105},
+        {"code": "39", "name": "El Oued", "lat": 33.3678, "lon": 6.8498},
+        {"code": "40", "name": "Khenchela", "lat": 35.4266, "lon": 7.1475},
+        {"code": "41", "name": "Souk Ahras", "lat": 36.2861, "lon": 7.9511},
+        {"code": "42", "name": "Tipaza", "lat": 36.5890, "lon": 2.4432},
+        {"code": "43", "name": "Mila", "lat": 36.4500, "lon": 6.2667},
+        {"code": "44", "name": "Ain Defla", "lat": 36.2632, "lon": 1.9516},
+        {"code": "45", "name": "Naama", "lat": 33.2667, "lon": -0.3167},
+        {"code": "46", "name": "Ain Temouchent", "lat": 35.3044, "lon": -1.1428},
+        {"code": "47", "name": "Ghardaia", "lat": 32.4900, "lon": 3.6464},
+        {"code": "48", "name": "Relizane", "lat": 35.7374, "lon": 0.7534},
+    ]
+    
+    # Get patient and diagnostic counts by wilaya
+    try:
+        patient_counts = Patient.objects.values('wilaya').annotate(count=Count('id'))
+        wilaya_data = {}
+        for p in patient_counts:
+            raw = p.get('wilaya') or ''
+            key = raw.strip().title()
+            if key:
+                wilaya_data[key] = p['count']
+        
+        # Get diagnostic counts by wilaya (use same normalization)
+        diagnostic_counts = Diagnostic.objects.values('patient__wilaya').annotate(count=Count('id'))
+        diagnostic_data = {}
+        for d in diagnostic_counts:
+            raw = d.get('patient__wilaya') or ''
+            key = raw.strip().title()
+            if key:
+                diagnostic_data[key] = d['count']
+    except Exception:
+        wilaya_data = {}
+        diagnostic_data = {}
+    
+    # Build result with all wilayas and their cancer cases
+    result = []
+    for w in wilayas:
+        cases = wilaya_data.get(w['name'], 0)
+        diagnostics = diagnostic_data.get(w['name'], 0)
+        
         result.append({
-            "code":                wilaya.code,
-            "nom":                 wilaya.nom,
-            "region":              wilaya.region,
-            "region_label":        wilaya.get_region_display(),
-            "latitude":            float(wilaya.latitude)  if wilaya.latitude  else None,
-            "longitude":           float(wilaya.longitude) if wilaya.longitude else None,
-            "population":          wilaya.population,
-            "superficie_km2":      wilaya.superficie_km2,
-            "chef_lieu":           wilaya.chef_lieu,
-            "total_patients":      total,
-            "cancers":             cancers,
-            "communes":            communes_data,
-            "risk_factors":        risk_factors,
-            "alertes":             alertes,
-            "incidence_pour_100k": incidence,
+            'code': w['code'],
+            'name': w['name'],
+            'lat': w['lat'],
+            'lon': w['lon'],
+            'cases': cases,
+            'patients': cases,
+            'diagnostics': diagnostics,
         })
+    
+    # Sort by most cases first
+    result = sorted(result, key=lambda x: x['cases'], reverse=True)
+    
+    return Response(result)
 
+
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_statistics(request):
+    """Get cancer statistics for Algeria."""
+    year = request.GET.get('year')
+    
+    # Filter by year if provided
+    diagnostics = Diagnostic.objects.all()
+    patients = Patient.objects.all()
+    
+    if year:
+        try:
+            diagnostics = diagnostics.filter(date_diagnostic__year=int(year))
+            patients = patients.filter(date_creation__year=int(year))
+        except (ValueError, TypeError):
+            pass
+    
+    # Top cancers
+    try:
+        top_cancers = diagnostics.values('topographie__code', 'topographie__libelle')\
+            .annotate(count=Count('id'))\
+            .order_by('-count')[:10]
+    except Exception:
+        top_cancers = []
+    
+    # Top wilayas
+    try:
+        top_wilayas = patients.values('wilaya')\
+            .annotate(count=Count('id'))\
+            .order_by('-count')[:10]
+    except Exception:
+        top_wilayas = []
+    
+    # Age distribution
+    age_groups = {
+        '0-14': 0,
+        '15-44': 0,
+        '45-64': 0,
+        '65+': 0
+    }
+    
+    try:
+        for p in patients:
+            age = getattr(p, 'age', None)
+            if age is not None:
+                if age < 15:
+                    age_groups['0-14'] += 1
+                elif age < 45:
+                    age_groups['15-44'] += 1
+                elif age < 65:
+                    age_groups['45-64'] += 1
+                else:
+                    age_groups['65+'] += 1
+    except Exception:
+        pass
+    
     return Response({
-        "wilayas":        result,
-        "total_national": total_national,
-        "annee":          annee,
-        "timestamp":      timezone.now().isoformat(),
+        'total_patients': patients.count(),
+        'total_diagnostics': diagnostics.count(),
+        'top_cancers': list(top_cancers),
+        'top_wilayas': list(top_wilayas),
+        'age_distribution': age_groups,
     })
 
 
-# ─────────────────────────────────────────────────────────────────
-# 2. DÉTAIL D'UNE WILAYA
-# ─────────────────────────────────────────────────────────────────
-
-@api_view(['GET'])
+@csrf_exempt
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def sig_wilaya_detail(request, wilaya_code):
+def create_patient(request):
+    """Create a new patient with geolocation data."""
+    data = request.data
+    
+    patient = Patient.objects.create(
+        nip=data.get('nip'),
+        nom=data.get('nom'),
+        prenom=data.get('prenom'),
+        date_naissance=data.get('date_naissance'),
+        sexe=data.get('sexe'),
+        wilaya=data.get('wilaya'),
+        commune=data.get('commune'),
+        adresse=data.get('adresse'),
+        telephone=data.get('telephone'),
+    )
+    
+    return Response({
+        'id': patient.id,
+        'message': 'Patient cree avec succes'
+    }, status=status.HTTP_201_CREATED)
+
+
+@csrf_exempt
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """Health check endpoint."""
+    return Response({'status': 'ok'})
+
+
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_all_wilayas_data(request):
     """
-    Détail complet : évolution multi-années, communes, facteurs de risque, alertes.
+    Récupère tous les cas de cancer par wilaya.
+    Retourne tous les wilayas avec leurs cas, patients et top cancers.
     """
     try:
-        wilaya = Wilaya.objects.prefetch_related(
-            'communes', 'facteurs_risque', 'stats_cancer', 'alertes'
-        ).get(code=wilaya_code)
-    except Wilaya.DoesNotExist:
-        return Response({"error": "Wilaya introuvable"}, status=status.HTTP_404_NOT_FOUND)
-
-    # Évolution depuis le cache ou calcul ponctuel
-    evolution     = []
-    stats_cache   = wilaya.stats_cancer.filter(est_complet=True).order_by('annee')
-    if stats_cache.exists():
-        for s in stats_cache:
-            evolution.append({
-                "annee":     s.annee,
-                "total":     s.total_patients,
-                "hommes":    s.total_hommes,
-                "femmes":    s.total_femmes,
-                "nouveaux":  s.total_nouveaux,
-                "incidence": float(s.incidence_pour_100k) if s.incidence_pour_100k else None,
-                "cancers":   s.cancers_json,
-            })
-    else:
-        total, cancers, _, incidence = _compute_wilaya_stats(wilaya)
-        evolution.append({"annee": timezone.now().year, "total": total, "cancers": cancers, "incidence": incidence})
-
-    # Communes détaillées
-    communes_detail = []
-    for commune in wilaya.communes.all():
-        stat_c = commune.stats_cancer.filter(annee=timezone.now().year).first()
-        if stat_c:
-            communes_detail.append({
-                "nom": commune.nom, "code": commune.code,
-                "total": stat_c.total_patients, "cancers": stat_c.cancers_json,
-                "latitude":  float(commune.latitude)  if commune.latitude  else None,
-                "longitude": float(commune.longitude) if commune.longitude else None,
-            })
-        else:
-            from apps.patients.models import Patient
-            total_c = Patient.objects.filter(wilaya_code=wilaya_code, commune__iexact=commune.nom).count()
-            if total_c > 0:
-                communes_detail.append({
-                    "nom": commune.nom, "code": commune.code, "total": total_c,
-                    "cancers": _compute_commune_cancers(wilaya_code, commune.nom),
-                    "latitude":  float(commune.latitude)  if commune.latitude  else None,
-                    "longitude": float(commune.longitude) if commune.longitude else None,
-                })
-    communes_detail.sort(key=lambda x: x['total'], reverse=True)
-
-    # Facteurs de risque
-    risk_factors = list(
-        FacteurRisque.objects
-        .filter(actif=True)
-        .filter(Q(wilaya=wilaya) | Q(region=wilaya.region, portee='region') | Q(portee='national'))
-        .order_by('ordre')
-        .values('nom', 'niveau', 'icone', 'description', 'source')
-    )
-    for rf in risk_factors:
-        rf['niveau_fr'] = _niveau_fr(rf['niveau'])
-
-    alertes = AlerteSerializer(wilaya.alertes.filter(active=True), many=True).data
-    latest  = evolution[-1] if evolution else {}
-
-    return Response({
-        "code":                wilaya.code,
-        "nom":                 wilaya.nom,
-        "nom_ar":              wilaya.nom_ar,
-        "region":              wilaya.region,
-        "region_label":        wilaya.get_region_display(),
-        "chef_lieu":           wilaya.chef_lieu,
-        "superficie_km2":      wilaya.superficie_km2,
-        "population":          wilaya.population,
-        "latitude":            float(wilaya.latitude)  if wilaya.latitude  else None,
-        "longitude":           float(wilaya.longitude) if wilaya.longitude else None,
-        "total_patients":      latest.get('total', 0),
-        "cancers":             latest.get('cancers', {}),
-        "incidence_pour_100k": latest.get('incidence'),
-        "communes":            communes_detail,
-        "risk_factors":        risk_factors,
-        "evolution":           evolution,
-        "alertes":             alertes,
-    })
+        # Get all unique wilayas with patient data
+        wilayas_list = Patient.objects.exclude(wilaya__isnull=True).exclude(wilaya='').values('wilaya').distinct().order_by('wilaya')
+        wilayas = [w['wilaya'] for w in wilayas_list]
+        
+        wilayas_data = {}
+        total_patients = 0
+        total_diagnostics = 0
+        
+        for wilaya in wilayas:
+            patients_wilaya = Patient.objects.filter(wilaya=wilaya)
+            diagnostics_wilaya = Diagnostic.objects.filter(patient__wilaya=wilaya)
+            
+            patients_count = patients_wilaya.count()
+            diagnostics_count = diagnostics_wilaya.count()
+            
+            if patients_count > 0 or diagnostics_count > 0:
+                # Top cancers in this wilaya
+                top_cancers = diagnostics_wilaya.values('topographie__code', 'topographie__libelle') \
+                    .annotate(count=Count('id')) \
+                    .order_by('-count')[:5]
+                
+                wilayas_data[wilaya] = {
+                    'patients': patients_count,
+                    'diagnostics': diagnostics_count,
+                    'top_cancers': list(top_cancers),
+                }
+                
+                total_patients += patients_count
+                total_diagnostics += diagnostics_count
+        
+        return Response({
+            'total_patients': total_patients,
+            'total_diagnostics': total_diagnostics,
+            'wilayas_count': len(wilayas_data),
+            'wilayas': wilayas_data,
+        })
+    except Exception as e:
+        import traceback
+        return Response({'error': str(e), 'traceback': traceback.format_exc()}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# ─────────────────────────────────────────────────────────────────
-# 3. STATS NATIONALES
-# ─────────────────────────────────────────────────────────────────
-
+@csrf_exempt
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def sig_stats_nationales(request):
-    """Vue agrégée nationale : top cancers, régions, évolution."""
-    from apps.patients.models import Patient
-    from apps.diagnostics.models import Diagnostic
-
-    cancers_national = {}
-    for row in Diagnostic.objects.values('type_cancer').annotate(n=Count('id')).order_by('-n'):
-        if row['type_cancer']:
-            cancers_national[row['type_cancer']] = row['n']
-
-    par_region = {}
-    for wilaya in Wilaya.objects.all():
-        count = Patient.objects.filter(wilaya_code=wilaya.code).count()
-        par_region[wilaya.region] = par_region.get(wilaya.region, 0) + count
-
-    evolution_cache = (
-        StatCancerWilaya.objects.filter(est_complet=True)
-        .values('annee')
-        .annotate(total=Sum('total_patients'), nouveaux=Sum('total_nouveaux'))
-        .order_by('annee')
-    )
-
-    return Response({
-        "total_national":     Patient.objects.count(),
-        "cancers_national":   cancers_national,
-        "par_region":         par_region,
-        "evolution":          list(evolution_cache),
-        "annee":              timezone.now().year,
-        "nb_wilayas_actives": Wilaya.objects.filter(
-            stats_cancer__total_patients__gt=0
-        ).distinct().count(),
-    })
-
-
-# ─────────────────────────────────────────────────────────────────
-# 4. VIEWSETS CRUD
-# ─────────────────────────────────────────────────────────────────
-
-class WilayaViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAuthenticated]
-    queryset           = Wilaya.objects.prefetch_related('communes', 'facteurs_risque').all()
-    filter_backends    = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields   = ['region']
-    search_fields      = ['nom', 'chef_lieu']
-
-    def get_serializer_class(self):
-        return WilayaDetailSerializer if self.action == 'retrieve' else WilayaListSerializer
-
-    @action(detail=True, methods=['post'])
-    def recalculer_stats(self, request, pk=None):
-        wilaya = self.get_object()
-        annee  = int(request.data.get('annee', timezone.now().year))
-        stat   = StatCancerWilaya.calculer_et_sauvegarder(wilaya.code, annee)
-        if stat:
-            return Response({"success": True, "total_patients": stat.total_patients})
-        return Response({"error": "Calcul impossible"}, status=400)
-
-
-class FacteurRisqueViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    serializer_class   = FacteurRisqueSerializer
-    filter_backends    = [DjangoFilterBackend]
-    filterset_fields   = ['portee', 'region', 'wilaya', 'niveau', 'actif']
-
-    def get_queryset(self):
-        return FacteurRisque.objects.select_related('wilaya').filter(actif=True)
-
-
-class AlerteViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    serializer_class   = AlerteSerializer
-    filter_backends    = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields   = ['wilaya', 'niveau', 'active', 'type_cancer']
-    ordering           = ['-date_debut']
-
-    def get_queryset(self):
-        return AlerteEpidemiologique.objects.select_related('wilaya', 'cree_par')
-
-    def perform_create(self, serializer):
-        serializer.save(cree_par=self.request.user)
+@permission_classes([AllowAny])
+def get_tlemcen_data(request):
+    """
+    Récupère les données de cancer par wilaya/commune.
+    Retourne les cas de cancer, les patients et les principales causes.
+    """
+    # Get wilaya from query parameter or default to the wilaya with most patients
+    requested_wilaya = request.GET.get('wilaya')
+    
+    try:
+        # If no wilaya specified, get the one with most patients
+        if not requested_wilaya:
+            wilaya_counts = Patient.objects.values('wilaya').annotate(count=Count('id')).order_by('-count').first()
+            requested_wilaya = wilaya_counts['wilaya'] if wilaya_counts else 'Tlemcen'
+        
+        # Get all unique communes for this wilaya
+        communes_list = Patient.objects.filter(
+            wilaya=requested_wilaya
+        ).values('commune').distinct().order_by('commune')
+        communes = [c['commune'] for c in communes_list if c['commune']]
+        
+        # If no communes found, try to get all patients without commune filtering
+        if not communes:
+            communes = [None]
+        
+        # Count cases by commune
+        communes_data = {}
+        for commune in communes:
+            if commune:
+                patients_commune = Patient.objects.filter(wilaya=requested_wilaya, commune=commune)
+            else:
+                patients_commune = Patient.objects.filter(wilaya=requested_wilaya, commune__isnull=True)
+            
+            count = patients_commune.count()
+            
+            if count > 0:
+                # Get diagnostics for this commune
+                if commune:
+                    diagnostics_commune = Diagnostic.objects.filter(
+                        patient__wilaya=requested_wilaya,
+                        patient__commune=commune
+                    )
+                else:
+                    diagnostics_commune = Diagnostic.objects.filter(
+                        patient__wilaya=requested_wilaya,
+                        patient__commune__isnull=True
+                    )
+                
+                # Top cancers in this commune
+                top_cancers = diagnostics_commune.values('topographie__code', 'topographie__libelle') \
+                    .annotate(count=Count('id')) \
+                    .order_by('-count')[:3]
+                
+                commune_display = commune or "Non spécifié"
+                communes_data[commune_display] = {
+                    'patients': count,
+                    'diagnostics': diagnostics_commune.count(),
+                    'top_cancers': list(top_cancers),
+                    'lat': 34.6783,  # Coordonnées par défaut
+                    'lon': -1.3616,
+                }
+        
+        # Get total diagnostics for the wilaya
+        total_diagnostics = Diagnostic.objects.filter(patient__wilaya=requested_wilaya).count()
+        
+        return Response({
+            'wilaya': requested_wilaya,
+            'total_patients': Patient.objects.filter(wilaya=requested_wilaya).count(),
+            'total_diagnostics': total_diagnostics,
+            'communes': communes_data,
+        })
+    except Exception as e:
+        import traceback
+        return Response({'error': str(e), 'traceback': traceback.format_exc()}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# ─────────────────────────────────────────────────────────────────
-# HELPERS PRIVÉS
-# ─────────────────────────────────────────────────────────────────
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_cancer_statistics(request):
+    """
+    Récupère les statistiques des cancers dominants avec causes.
+    Filtre optionnel par wilaya ou commune.
+    """
+    wilaya = request.GET.get('wilaya')
+    commune = request.GET.get('commune')
+    
+    # If no wilaya specified, get the one with most patients
+    if not wilaya:
+        wilaya_counts = Patient.objects.values('wilaya').annotate(count=Count('id')).order_by('-count').first()
+        wilaya = wilaya_counts['wilaya'] if wilaya_counts else 'Oran'
+    
+    try:
+        # Filter diagnostics
+        diagnostics_query = Diagnostic.objects.filter(patient__wilaya=wilaya)
+        if commune:
+            diagnostics_query = diagnostics_query.filter(patient__commune=commune)
+        
+        # Top 10 cancers with percentage
+        total_diagnostics = diagnostics_query.count()
+        top_cancers = diagnostics_query.values('topographie__code', 'topographie__libelle') \
+            .annotate(count=Count('id')) \
+            .order_by('-count')
+        
+        cancer_stats = []
+        for cancer in top_cancers:
+            percentage = (cancer['count'] / total_diagnostics * 100) if total_diagnostics > 0 else 0
+            cancer_stats.append({
+                'code': cancer.get('topographie__code') or cancer.get('topographie__libelle'),
+                'name': cancer.get('topographie__libelle') or cancer.get('topographie__code'),
+                'count': cancer['count'],
+                'percentage': round(percentage, 1),
+            })
+        
+        # Count unique patients by cancer type
+        patients_by_cancer = {}
+        for cancer in cancer_stats:
+            patients = diagnostics_query.filter(
+                topographie__code=cancer['code']
+            ).values('patient_id').distinct().count()
+            cancer['unique_patients'] = patients
+        
+        # Cancer causes (enriched static data)
+        cancer_causes = _get_cancer_causes(cancer_stats[:5])
+        
+        # Gender distribution
+        patients_query = Patient.objects.filter(wilaya=wilaya)
+        if commune:
+            patients_query = patients_query.filter(commune=commune)
+        
+        gender_dist = patients_query.values('sexe').annotate(count=Count('id'))
+        gender_data = {item['sexe'] or 'N/A': item['count'] for item in gender_dist}
+        
+        return Response({
+            'wilaya': wilaya,
+            'commune': commune,
+            'total_diagnostics': total_diagnostics,
+            'total_patients': patients_query.count(),
+            'cancer_statistics': cancer_stats,
+            'gender_distribution': gender_data,
+            'cancer_causes': cancer_causes,
+        })
+    except Exception as e:
+        import traceback
+        return Response({'error': str(e), 'traceback': traceback.format_exc()}, status=status.HTTP_400_BAD_REQUEST)
 
-def _compute_wilaya_stats(wilaya):
-    from apps.patients.models import Patient
-    from apps.diagnostics.models import Diagnostic
 
-    patients_qs = Patient.objects.filter(wilaya_code=wilaya.code)
-    total       = patients_qs.count()
-
-    cancers = {}
-    for row in Diagnostic.objects.filter(patient__wilaya_code=wilaya.code).values('type_cancer').annotate(n=Count('id')).order_by('-n'):
-        if row['type_cancer']:
-            cancers[row['type_cancer']] = row['n']
-
-    communes_qs = patients_qs.values('commune').annotate(total=Count('id')).order_by('-total')[:20]
-    communes_data = [
-        {"nom": r['commune'] or 'Inconnue', "total": r['total'],
-         "cancers": _compute_commune_cancers(wilaya.code, r['commune'])}
-        for r in communes_qs if r['commune']
-    ]
-
-    incidence = None
-    if wilaya.population and wilaya.population > 0 and total > 0:
-        incidence = round((total / wilaya.population) * 100_000, 2)
-
-    return total, cancers, communes_data, incidence
-
-
-def _compute_commune_cancers(wilaya_code, commune_nom):
-    from apps.diagnostics.models import Diagnostic
-    if not commune_nom:
-        return {}
-    qs = (
-        Diagnostic.objects
-        .filter(patient__wilaya_code=wilaya_code, patient__commune__iexact=commune_nom)
-        .values('type_cancer').annotate(n=Count('id'))
-    )
-    return {row['type_cancer']: row['n'] for row in qs if row['type_cancer']}
-
-
-def _niveau_fr(niveau):
-    return {'tres_eleve': 'très élevé', 'eleve': 'élevé', 'modere': 'modéré', 'faible': 'faible'}.get(niveau, niveau)
+def _get_cancer_causes(cancer_stats):
+    """Retourne les causes des cancers les plus dominants."""
+    causes_map = {
+        'Sein': {
+            'label': 'Cancer du Sein',
+            'causes': [
+                'Antécédents familiaux (mutations BRCA1/BRCA2)',
+                'Hormonothérapie prolongée',
+                'Obésité et sédentarité',
+                'Consommation d\'alcool',
+                'Nulliparité et ménopause tardive'
+            ]
+        },
+        'Colon': {
+            'label': 'Cancer Colorectal',
+            'causes': [
+                'Régime riche en viande rouge',
+                'Antécédents familiaux de polypes',
+                'Maladie inflammatoire intestinale',
+                'Sédentarité et obésité',
+                'Consommation d\'alcool'
+            ]
+        },
+        'Poumon': {
+            'label': 'Cancer du Poumon',
+            'causes': [
+                'Tabagisme (85% des cas)',
+                'Exposition à l\'amiante',
+                'Pollution de l\'air',
+                'Prédisposition génétique',
+                'Consommation d\'alcool'
+            ]
+        },
+        'Prostate': {
+            'label': 'Cancer de la Prostate',
+            'causes': [
+                'Âge avancé (> 50 ans)',
+                'Antécédents familiaux',
+                'Ethnie (plus fréquent chez les Afro-Américains)',
+                'Facteurs hormonaux (testosterone)',
+                'Régime riche en graisses'
+            ]
+        },
+        'Col Utérin': {
+            'label': 'Cancer du Col Utérin',
+            'causes': [
+                'Infection par HPV (90% des cas)',
+                'Rapports sexuels précoces',
+                'Multiplicité de partenaires',
+                'Tabagisme',
+                'Immunodépression'
+            ]
+        },
+    }
+    
+    result = {}
+    for cancer in cancer_stats:
+        cancer_name = cancer['name']
+        # Chercher une correspondance
+        for key, value in causes_map.items():
+            if key.lower() in cancer_name.lower():
+                result[cancer_name] = {
+                    'label': value['label'],
+                    'count': cancer['count'],
+                    'percentage': cancer['percentage'],
+                    'causes': value['causes']
+                }
+                break
+        else:
+            # Si pas de correspondance
+            result[cancer_name] = {
+                'label': cancer_name,
+                'count': cancer['count'],
+                'percentage': cancer['percentage'],
+                'causes': ['Causes non documentées']
+            }
+    
+    return result

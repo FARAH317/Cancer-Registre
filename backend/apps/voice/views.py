@@ -81,7 +81,7 @@ def extract_voice_fields(request):
         client = get_groq_client()
 
         completion = client.chat.completions.create(
-            model="llama-3.1-70b-versatile",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": PROMPTS[form_type]},
                 {"role": "user", "content": transcript}
@@ -125,9 +125,18 @@ def extract_voice_fields(request):
         )
 
     except Exception as e:
-        # Log the full error for debugging
+        # unexpected error (network, groq-specific, etc.)
+        # already caught ImportError/ValueError/JSONDecodeError above
+        import traceback
+        traceback.print_exc()
         logger.exception(f"Erreur lors de l'extraction vocale: {str(e)}")
+
+        # send the actual message back when DEBUG=True so frontend can display it
+        payload = {'error': str(e)}
+        if settings.DEBUG:
+            payload['stack'] = traceback.format_exc()
+
         return Response(
-            {'error': f'Erreur lors du traitement: {str(e)}'},
+            payload,
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
