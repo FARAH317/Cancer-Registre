@@ -1,0 +1,101 @@
+/* ─── RESET & BASE ─────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  /* Dark medical palette */
+  --bg-deep:      #e6e8ed;  /* fond principal clair gris doux */
+  --bg-surface:   #f5f5f8;  /* surfaces, sections */
+  --bg-card:      #ffffff;  /* cartes légèrement contrastées */
+  --bg-elevated:  #f0f2f5;  /* boutons / éléments surélevés */
+  --bg-hover:     #dce0e6;
+
+  /* Borders */
+   --border:       rgba(0,0,0,0.08);
+  --border-light: rgba(0,0,0,0.12);
+  --border-focus: rgba(0,120,200,0.5);
+
+  /* Accent - medical cyan/teal */
+  --accent:       #0077cc;
+  --accent-dim:   rgba(0,119,204,0.1);
+  --accent-glow:  rgba(0,119,204,0.2);
+  --accent-2:     #00a8ff;
+
+
+  /* Text */
+  --text-primary:   #1a1a1a;  /* texte principal sombre */
+  --text-secondary: #3e4c59;  /* texte secondaire neutre */
+  --text-muted:     #6b7280;  /* texte moins important */
+  --text-accent:    #0077cc;
+  /* Status colors */
+  --success:   #2ba84a;
+  --warning:   #e2a03f;
+  --danger:    #e45c5c;
+  --info:      #0077cc;
+  --purple:    #8b63d9;
+
+  /* Typography */
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  16px;
+  --radius-xl:  24px;
+}
+
+html { font-size: 16px; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+#root { min-height: 100vh; }
+
+/* ─── SCROLLBAR ─────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-surface); }
+::-webkit-scrollbar-thumb { background: var(--bg-hover); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ─── ANIMATIONS ─────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50%       { box-shadow: 0 0 20px 4px var(--accent-glow); }
+}
+@keyframes scan-line {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Extra utilities added for patients module ── */
+select option { background: #141926; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
