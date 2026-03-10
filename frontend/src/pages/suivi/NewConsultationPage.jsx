@@ -66,8 +66,8 @@ export default function NewConsultationPage() {
  <Row2>
  <Field label="Patient *" error={errors.patient?.message}>
  <select {...register('patient', { required: 'Champ requis' })} style={selSt}>
- <option value="">Sélectionner un patient...</option>
- {patients.map(p => <option key={p.id} value={p.id}>{p.registration_number} – {p.full_name}</option>)}
+ <option style={{ background: 'white' }} value="">Sélectionner un patient...</option>
+ {patients.map(p => <option style={{ background: 'white' }} key={p.id} value={p.id}>{p.registration_number} – {p.full_name}</option>)}
  </select>
  </Field>
  <Field label="Date de consultation *" error={errors.date_consultation?.message}>
@@ -77,22 +77,22 @@ export default function NewConsultationPage() {
  <Row2>
  <Field label="Type de consultation">
  <select {...register('type_consultation')} style={selSt}>
- <option value="suivi">Suivi standard</option>
- <option value="post_trt">Post-traitement</option>
- <option value="urgence">Urgence</option>
- <option value="bilan">Bilan d'extension</option>
- <option value="annonce">Consultation d'annonce</option>
- <option value="palliative">Soins palliatifs</option>
- <option value="psycho">Psycho-oncologie</option>
- <option value="dietet">Diététique</option>
+ <option style={{ background: 'white' }} value="suivi">Suivi standard</option>
+ <option style={{ background: 'white' }} value="post_trt">Post-traitement</option>
+ <option style={{ background: 'white' }} value="urgence">Urgence</option>
+ <option style={{ background: 'white' }} value="bilan">Bilan d'extension</option>
+ <option style={{ background: 'white' }} value="annonce">Consultation d'annonce</option>
+ <option style={{ background: 'white' }} value="palliative">Soins palliatifs</option>
+ <option style={{ background: 'white' }} value="psycho">Psycho-oncologie</option>
+ <option style={{ background: 'white' }} value="dietet">Diététique</option>
  </select>
  </Field>
  <Field label="Statut">
  <select {...register('statut')} style={selSt}>
- <option value="realisee">Réalisée</option>
- <option value="planifiee">Planifiée</option>
- <option value="annulee">Annulée</option>
- <option value="reportee">Reportée</option>
+ <option style={{ background: 'white' }} value="realisee">Réalisée</option>
+ <option style={{ background: 'white' }} value="planifiee">Planifiée</option>
+ <option style={{ background: 'white' }} value="annulee">Annulée</option>
+ <option style={{ background: 'white' }} value="reportee">Reportée</option>
  </select>
  </Field>
  </Row2>
@@ -138,12 +138,12 @@ export default function NewConsultationPage() {
  </Field>
  <Field label="Performance Status (ECOG)">
  <select {...register('ps_ecog')} style={selSt}>
- <option value="">— Non évalué —</option>
- <option value="0">PS 0 – Asymptomatique</option>
- <option value="1">PS 1 – Symptomatique, activité normale</option>
- <option value="2">PS 2 – Symptomatique, alité &lt;50%</option>
- <option value="3">PS 3 – Alité &gt;50% de la journée</option>
- <option value="4">PS 4 – Grabataire</option>
+ <option style={{ background: 'white' }} value="">— Non évalué —</option>
+ <option style={{ background: 'white' }} value="0">PS 0 – Asymptomatique</option>
+ <option style={{ background: 'white' }} value="1">PS 1 – Symptomatique, activité normale</option>
+ <option style={{ background: 'white' }} value="2">PS 2 – Symptomatique, alité &lt;50%</option>
+ <option style={{ background: 'white' }} value="3">PS 3 – Alité &gt;50% de la journée</option>
+ <option style={{ background: 'white' }} value="4">PS 4 – Grabataire</option>
  </select>
  </Field>
  </Row2>
@@ -186,10 +186,10 @@ export default function NewConsultationPage() {
  <Row3>
  <Field label="Tabac">
  <select {...register('tabac')} style={selSt}>
- <option value="inconnu">Inconnu</option>
- <option value="non">Non-fumeur</option>
- <option value="ex">Ex-fumeur</option>
- <option value="actif">Fumeur actif</option>
+ <option style={{ background: 'white' }} value="inconnu">Inconnu</option>
+ <option style={{ background: 'white' }} value="non">Non-fumeur</option>
+ <option style={{ background: 'white' }} value="ex">Ex-fumeur</option>
+ <option style={{ background: 'white' }} value="actif">Fumeur actif</option>
  </select>
  </Field>
  <Field label="Paquets-années">
@@ -197,27 +197,27 @@ export default function NewConsultationPage() {
  </Field>
  <Field label="Alcool">
  <select {...register('alcool')} style={selSt}>
- <option value="inconnu">Inconnu</option>
- <option value="non">Non</option>
- <option value="oui">Oui</option>
+ <option style={{ background: 'white' }} value="inconnu">Inconnu</option>
+ <option style={{ background: 'white' }} value="non">Non</option>
+ <option style={{ background: 'white' }} value="oui">Oui</option>
  </select>
  </Field>
  </Row3>
  <Row3>
  <Field label="Activité physique">
  <select {...register('activite_physique')} style={selSt}>
- <option value="inconnu">Inconnu</option>
- <option value="sedentaire">Sédentaire</option>
- <option value="leger">Activité légère</option>
- <option value="modere">Activité modérée</option>
- <option value="intense">Activité intense</option>
+ <option style={{ background: 'white' }} value="inconnu">Inconnu</option>
+ <option style={{ background: 'white' }} value="sedentaire">Sédentaire</option>
+ <option style={{ background: 'white' }} value="leger">Activité légère</option>
+ <option style={{ background: 'white' }} value="modere">Activité modérée</option>
+ <option style={{ background: 'white' }} value="intense">Activité intense</option>
  </select>
  </Field>
  <Field label="Alimentation">
  <select {...register('alimentation')} style={selSt}>
- <option value="inconnu">Inconnu</option>
- <option value="equilibree">Équilibrée</option>
- <option value="desequilibree">Déséquilibrée</option>
+ <option style={{ background: 'white' }} value="inconnu">Inconnu</option>
+ <option style={{ background: 'white' }} value="equilibree">Équilibrée</option>
+ <option style={{ background: 'white' }} value="desequilibree">Déséquilibrée</option>
  </select>
  </Field>
  <Field label="">
@@ -239,12 +239,12 @@ export default function NewConsultationPage() {
  <Row2>
  <Field label="Évolution tumorale">
  <select {...register('evolution_maladie')} style={selSt}>
- <option value="">— Non évaluée —</option>
- <option value="stable">Stable</option>
- <option value="regression">Régression</option>
- <option value="progression">Progression</option>
- <option value="remission">Rémission complète</option>
- <option value="inconnu">Non évaluable</option>
+ <option style={{ background: 'white' }} value="">— Non évaluée —</option>
+ <option style={{ background: 'white' }} value="stable">Stable</option>
+ <option style={{ background: 'white' }} value="regression">Régression</option>
+ <option style={{ background: 'white' }} value="progression">Progression</option>
+ <option style={{ background: 'white' }} value="remission">Rémission complète</option>
+ <option style={{ background: 'white' }} value="inconnu">Non évaluable</option>
  </select>
  </Field>
  <Field label="Prochaine consultation">
@@ -326,8 +326,8 @@ export function NewEvenementPage() {
  <Row2>
  <Field label="Patient *" error={errors.patient?.message}>
  <select {...register('patient', { required: 'Champ requis' })} style={selSt}>
- <option value="">Sélectionner...</option>
- {patients.map(p => <option key={p.id} value={p.id}>{p.registration_number} – {p.full_name}</option>)}
+ <option style={{ background: 'white' }} value="">Sélectionner...</option>
+ {patients.map(p => <option style={{ background: 'white' }} key={p.id} value={p.id}>{p.registration_number} – {p.full_name}</option>)}
  </select>
  </Field>
  <Field label="Médicament / Traitement en cause *" error={errors.medicament_cause?.message}>
@@ -337,29 +337,29 @@ export function NewEvenementPage() {
  <Row2>
  <Field label="Type d'effet *" error={errors.type_effet?.message}>
  <select {...register('type_effet', { required: 'Champ requis' })} style={selSt}>
- <option value="">Sélectionner...</option>
- <option value="hemato">Hématologique</option>
- <option value="digestif">Digestif</option>
- <option value="cutane">Cutané</option>
- <option value="neuro">Neurologique</option>
- <option value="cardiaque">Cardiaque</option>
- <option value="hepatique">Hépatique</option>
- <option value="renal">Rénal</option>
- <option value="pulmo">Pulmonaire</option>
- <option value="fatigue">Fatigue / Asthénie</option>
- <option value="douleur">Douleur</option>
- <option value="psycho">Psychologique</option>
- <option value="autre">Autre</option>
+ <option style={{ background: 'white' }} value="">Sélectionner...</option>
+ <option style={{ background: 'white' }} value="hemato">Hématologique</option>
+ <option style={{ background: 'white' }} value="digestif">Digestif</option>
+ <option style={{ background: 'white' }} value="cutane">Cutané</option>
+ <option style={{ background: 'white' }} value="neuro">Neurologique</option>
+ <option style={{ background: 'white' }} value="cardiaque">Cardiaque</option>
+ <option style={{ background: 'white' }} value="hepatique">Hépatique</option>
+ <option style={{ background: 'white' }} value="renal">Rénal</option>
+ <option style={{ background: 'white' }} value="pulmo">Pulmonaire</option>
+ <option style={{ background: 'white' }} value="fatigue">Fatigue / Asthénie</option>
+ <option style={{ background: 'white' }} value="douleur">Douleur</option>
+ <option style={{ background: 'white' }} value="psycho">Psychologique</option>
+ <option style={{ background: 'white' }} value="autre">Autre</option>
  </select>
  </Field>
  <Field label="Sévérité (CTCAE) *" error={errors.severite?.message}>
  <select {...register('severite', { required: 'Champ requis' })} style={selSt}>
- <option value="">Sélectionner...</option>
- <option value="1">Grade 1 – Léger</option>
- <option value="2">Grade 2 – Modéré</option>
- <option value="3">Grade 3 – Sévère</option>
- <option value="4">Grade 4 – Critique</option>
- <option value="5">Grade 5 – Décès</option>
+ <option style={{ background: 'white' }} value="">Sélectionner...</option>
+ <option style={{ background: 'white' }} value="1">Grade 1 – Léger</option>
+ <option style={{ background: 'white' }} value="2">Grade 2 – Modéré</option>
+ <option style={{ background: 'white' }} value="3">Grade 3 – Sévère</option>
+ <option style={{ background: 'white' }} value="4">Grade 4 – Critique</option>
+ <option style={{ background: 'white' }} value="5">Grade 5 – Décès</option>
  </select>
  </Field>
  </Row2>
@@ -379,12 +379,12 @@ export function NewEvenementPage() {
  </Row2>
  <Field label="Impact sur le traitement">
  <select {...register('impact_traitement')} style={selSt}>
- <option value="aucun">Aucun impact</option>
- <option value="reduction_dose">Réduction de dose</option>
- <option value="report">Report du traitement</option>
- <option value="arret_temp">Arrêt temporaire</option>
- <option value="arret_def">Arrêt définitif</option>
- <option value="inconnu">Non documenté</option>
+ <option style={{background:'white'}} value="aucun">Aucun impact</option>
+ <option style={{background:'white'}} value="reduction_dose">Réduction de dose</option>
+ <option style={{background:'white'}} value="report">Report du traitement</option>
+ <option style={{background:'white'}} value="arret_temp">Arrêt temporaire</option>
+ <option style={{background:'white'}} value="arret_def">Arrêt définitif</option>
+ <option style={{background:'white'}} value="inconnu">Non documenté</option>
  </select>
  </Field>
  <Field label="Traitement symptomatique mis en place">

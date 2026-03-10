@@ -1,173 +1,184 @@
-/**
- * hooks/useSpeechRecognition.js
- *
- * Enregistrement audio LOCAL via MediaRecorder API (intégré au navigateur).
- * Transcription via Groq Whisper côté serveur Django — AUCUNE dépendance Google.
- * Fonctionne en HTTP local, réseau restreint, et tous navigateurs modernes.
- */
+import { useState, useRef, useCallback, useEffect } from 'react';
 
-import { useState, useRef, useCallback } from 'react';
+const LANG = 'fr-FR';
+const MAX_RETRIES = 3;
 
-const TRANSCRIBE_URL = '/api/v1/voice/transcribe/';
+export default function useSpeechRecognition({ onTranscript, continuous = false }) {
+  // ⚠️ continuous = false — plus stable, évite les coupures réseau
+  const [isListening, setIsListening] = useState(false);
+  const [transcript,  setTranscript]  = useState('');
+  const [interimText, setInterimText] = useState('');
+  const [error,       setError]       = useState(null);
+  const [supported,   setSupported]   = useState(true);
 
-export default function useSpeechRecognition({ onTranscript } = {}) {
-  const [isListening,   setIsListening]   = useState(false);
-  const [isTranscribing,setIsTranscribing] = useState(false);
-  const [transcript,    setTranscript]    = useState('');
-  const [error,         setError]         = useState(null);
-  const [supported,     setSupported]     = useState(
-    typeof window !== 'undefined' &&
-    !!(navigator.mediaDevices?.getUserMedia) &&
-    typeof MediaRecorder !== 'undefined'
-  );
+  const recognitionRef = useRef(null);
+  const finalTextRef   = useRef('');
+  const retryCountRef  = useRef(0);
+  const shouldRestartRef = useRef(false);
+  const allTextRef     = useRef(''); // accumule sur plusieurs sessions
 
-  const mediaRecorderRef = useRef(null);
-  const chunksRef        = useRef([]);
-  const streamRef        = useRef(null);
+  const createRecognition = useCallback(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return null;
 
-  // ── Démarrer l'enregistrement ─────────────────────────────
-  const start = useCallback(async () => {
-    setError(null);
-    setTranscript('');
-    chunksRef.current = [];
+    const recognition = new SpeechRecognition();
+    recognition.lang             = LANG;
+    recognition.continuous       = false;  // false = plus stable
+    recognition.interimResults   = true;
+    recognition.maxAlternatives  = 1;
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-
-      // Choisir le meilleur codec disponible
-      const mimeType = [
-        'audio/webm;codecs=opus',
-        'audio/webm',
-        'audio/ogg;codecs=opus',
-        'audio/ogg',
-        'audio/mp4',
-      ].find(t => MediaRecorder.isTypeSupported(t)) || '';
-
-      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
-      mediaRecorderRef.current = recorder;
-
-      recorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) {
-          chunksRef.current.push(e.data);
-        }
-      };
-
-      recorder.onstop = async () => {
-        // Arrêter le microphone
-        stream.getTracks().forEach(t => t.stop());
-        streamRef.current = null;
-
-        if (chunksRef.current.length === 0) {
-          setError('Aucun audio enregistré.');
-          setIsTranscribing(false);
-          return;
-        }
-
-        const blob = new Blob(chunksRef.current, {
-          type: mimeType || 'audio/webm',
-        });
-
-        setIsTranscribing(true);
-        try {
-          const text = await sendToWhisper(blob, mimeType);
-          setTranscript(text);
-          onTranscript?.(text);
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setIsTranscribing(false);
-        }
-      };
-
-      recorder.onerror = (e) => {
-        setError('Erreur microphone : ' + (e.error?.message || 'inconnue'));
-        setIsListening(false);
-      };
-
-      recorder.start(250); // chunks toutes les 250ms
+    recognition.onstart = () => {
+      console.log('🎙️ onstart');
       setIsListening(true);
+      setError(null);
+      finalTextRef.current = '';
+    };
 
-    } catch (err) {
-      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setError('Microphone refusé — autorisez l\'accès dans votre navigateur.');
-      } else if (err.name === 'NotFoundError') {
-        setError('Aucun microphone détecté.');
-      } else {
-        setError('Impossible d\'accéder au microphone : ' + err.message);
+    recognition.onspeechstart = () => {
+      console.log('🗣️ Parole détectée !');
+      retryCountRef.current = 0; // reset retry si parole détectée
+    };
+
+    recognition.onresult = (event) => {
+      let interim = '';
+      let final   = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          final += result[0].transcript + ' ';
+        } else {
+          interim += result[0].transcript;
+        }
       }
-    }
+
+      if (final) {
+        finalTextRef.current += final;
+        allTextRef.current   += final;
+      }
+
+      setInterimText(interim);
+      setTranscript(allTextRef.current.trim());
+    };
+
+    recognition.onerror = (event) => {
+      console.error('❌ onerror:', event.error);
+
+      if (event.error === 'network') {
+        setError('Erreur réseau — vérifiez votre connexion internet (Google Speech API requise).');
+        shouldRestartRef.current = false;
+        setIsListening(false);
+        return;
+      }
+
+      if (event.error === 'not-allowed') {
+        setError('Permission microphone refusée — autorisez le micro dans votre navigateur.');
+        shouldRestartRef.current = false;
+        setIsListening(false);
+        return;
+      }
+
+      if (event.error === 'no-speech') {
+        // Pas de parole détectée — relancer si on écoute encore
+        console.warn('⚠️ no-speech — relance automatique...');
+        return; // onend va gérer le restart
+      }
+
+      if (event.error === 'aborted') return; // normal à l'arrêt
+    };
+
+    recognition.onend = () => {
+      console.log('🏁 onend — texte accumulé:', allTextRef.current);
+
+      // Si on doit continuer à écouter → relancer automatiquement
+      if (shouldRestartRef.current && retryCountRef.current < MAX_RETRIES) {
+        retryCountRef.current++;
+        console.log(`🔄 Relance ${retryCountRef.current}/${MAX_RETRIES}...`);
+        setTimeout(() => {
+          try { recognitionRef.current?.start(); } catch (e) {}
+        }, 300);
+        return;
+      }
+
+      // Fin définitive → envoyer le texte accumulé
+      setIsListening(false);
+      setInterimText('');
+
+      const texte = allTextRef.current.trim();
+      if (texte) {
+        console.log('✅ Envoi transcript:', texte);
+        onTranscript?.(texte);
+      } else {
+        console.warn('⚠️ Aucun texte capturé');
+        if (retryCountRef.current >= MAX_RETRIES) {
+          setError('Aucune parole détectée. Vérifiez votre microphone et connexion internet.');
+        }
+      }
+
+      allTextRef.current = '';
+    };
+
+    return recognition;
   }, [onTranscript]);
 
-  // ── Arrêter l'enregistrement ──────────────────────────────
-  const stop = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-      setIsListening(false);
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSupported(false);
+      setError('Votre navigateur ne supporte pas la saisie vocale. Utilisez Chrome ou Edge.');
     }
   }, []);
 
-  // ── Toggle ────────────────────────────────────────────────
+  const start = useCallback(() => {
+    if (isListening) return;
+
+    const recognition = createRecognition();
+    if (!recognition) return;
+
+    recognitionRef.current  = recognition;
+    shouldRestartRef.current = true;
+    retryCountRef.current   = 0;
+    allTextRef.current      = '';
+    finalTextRef.current    = '';
+
+    setTranscript('');
+    setInterimText('');
+    setError(null);
+
+    try {
+      recognition.start();
+      console.log('▶️ start()');
+    } catch (e) {
+      console.error('start() erreur:', e);
+    }
+  }, [isListening, createRecognition]);
+
+  const stop = useCallback(() => {
+    console.log('⏹️ stop()');
+    shouldRestartRef.current = false;
+    try { recognitionRef.current?.stop(); } catch (e) {}
+  }, []);
+
   const toggle = useCallback(() => {
     if (isListening) stop();
     else start();
   }, [isListening, start, stop]);
 
-  // ── Reset ─────────────────────────────────────────────────
   const reset = useCallback(() => {
-    stop();
+    shouldRestartRef.current = false;
+    try { recognitionRef.current?.abort(); } catch (e) {}
     setTranscript('');
+    setInterimText('');
     setError(null);
-    chunksRef.current = [];
-  }, [stop]);
+    setIsListening(false);
+    allTextRef.current   = '';
+    finalTextRef.current = '';
+  }, []);
 
   return {
-    isListening,
-    isTranscribing,
-    transcript,
-    interimText: '',   // Pas d'interim avec MediaRecorder (transcription post-enregistrement)
-    error,
-    supported,
-    start,
-    stop,
-    toggle,
-    reset,
+    isListening, transcript, interimText,
+    error, supported,
+    start, stop, toggle, reset,
   };
-}
-
-// ── Envoi du blob audio à Django/Groq Whisper ─────────────────
-async function sendToWhisper(blob, mimeType) {
-  const token = localStorage.getItem('access_token');
-
-  const formData = new FormData();
-  // Nommer le fichier avec la bonne extension pour que Groq l'accepte
-  const ext = mimeType?.includes('ogg') ? 'ogg'
-            : mimeType?.includes('mp4') ? 'mp4'
-            : 'webm';
-  formData.append('audio', blob, `recording.${ext}`);
-  formData.append('language', 'fr');
-
-  const response = await fetch(TRANSCRIBE_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      // NE PAS mettre Content-Type ici — FormData le gère automatiquement
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    let msg = `Erreur serveur (${response.status})`;
-    try {
-      const data = await response.json();
-      msg = data.error || msg;
-    } catch {}
-    throw new Error(msg);
-  }
-
-  const data = await response.json();
-  if (!data.transcript) {
-    throw new Error('Transcription vide — parlez plus fort ou réessayez.');
-  }
-  return data.transcript;
 }

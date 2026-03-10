@@ -231,28 +231,52 @@ export default function NewDiagnosticPage() {
                 <Row>
                   <Field label="Type de diagnostic">
                     <select {...register('type_diagnostic')} style={selectStyle()}>
-                      <option value="">— Sélectionner —</option>
-                      {TYPE_DIAG_OPTIONS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+                      <option style={{ background: 'white' }} value="">
+                        — Sélectionner —
+                      </option>
+                      {TYPE_DIAG_OPTIONS.map(o => (
+                        <option key={o.v} value={o.v} style={{ background: 'white' }}>
+                          {o.l}
+                        </option>
+                      ))}
                     </select>
                   </Field>
                   <Field label="Latéralité">
                     <select {...register('lateralite')} style={selectStyle()}>
-                      <option value="">— Sélectionner —</option>
-                      {LATERALITE_OPTIONS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+                      <option style={{ background: 'white' }} value="">
+                        — Sélectionner —
+                      </option>
+                      {LATERALITE_OPTIONS.map(o => (
+                        <option key={o.v} value={o.v} style={{ background: 'white' }}>
+                          {o.l}
+                        </option>
+                      ))}
                     </select>
                   </Field>
                 </Row>
                 <Row>
                   <Field label="Base du diagnostic">
                     <select {...register('base_diagnostic')} style={selectStyle()}>
-                      <option value="">— Sélectionner —</option>
-                      {BASE_DIAG_OPTIONS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+                      <option style={{ background: 'white' }} value="">
+                        — Sélectionner —
+                      </option>
+                      {BASE_DIAG_OPTIONS.map(o => (
+                        <option key={o.v} value={o.v} style={{ background: 'white' }}>
+                          {o.l}
+                        </option>
+                      ))}
                     </select>
                   </Field>
                   <Field label="Grade histologique">
                     <select {...register('grade_histologique')} style={selectStyle()}>
-                      <option value="">— Sélectionner —</option>
-                      {GRADE_OPTIONS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+                      <option style={{ background: 'white' }} value="">
+                        — Sélectionner —
+                      </option>
+                      {GRADE_OPTIONS.map(o => (
+                        <option key={o.v} value={o.v} style={{ background: 'white' }}>
+                          {o.l}
+                        </option>
+                      ))}
                     </select>
                   </Field>
                 </Row>
@@ -306,23 +330,35 @@ export default function NewDiagnosticPage() {
                   </Field>
                   <Field label="Stade AJCC">
                     <select {...register('stade_ajcc')} style={selectStyle()}>
-                      <option value="">— Sélectionner —</option>
-                      {STADE_OPTIONS.map(s => <option key={s} value={s}>Stade {s}</option>)}
+                      <option style={{ background: 'white' }} value="">
+                        — Sélectionner —
+                      </option>
+                      {STADE_OPTIONS.map(s => (
+                        <option key={s} value={s} style={{ background: 'white' }}>
+                          Stade {s}
+                        </option>
+                      ))}
                     </select>
                   </Field>
                 </Row>
                 <Row>
                   <Field label="État d'extension">
                     <select {...register('etat_cancer')} style={selectStyle()}>
-                      <option value="">— Sélectionner —</option>
-                      {ETAT_OPTIONS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+                      <option style={{background:'white'}} value="">— Sélectionner —</option>
+                      {ETAT_OPTIONS.map(o => <option key={o.v} value={o.v} style={{ background: 'white' }}>{o.l}</option>)}
                     </select>
                   </Field>
                   <Field label="Type TNM">
                     <select {...register('tnm_type')} style={selectStyle()}>
-                      <option value="c">cTNM — Clinique</option>
-                      <option value="p">pTNM — Pathologique</option>
-                      <option value="y">yTNM — Post-thérapeutique</option>
+                      <option style={{ background: 'white' }} value="c">
+                        cTNM — Clinique
+                      </option>
+                      <option style={{ background: 'white' }} value="p">
+                        pTNM — Pathologique
+                      </option>
+                      <option style={{ background: 'white' }} value="y">
+                        yTNM — Post-thérapeutique
+                      </option>
                     </select>
                   </Field>
                 </Row>
@@ -386,13 +422,27 @@ export default function NewDiagnosticPage() {
                 </Field>
                 <Field label="Performance status (OMS 0–4)">
                   <select {...register('performance_status')} style={selectStyle()}>
-                    <option value="">— Sélectionner —</option>
-                    <option value="0">0 — Activité normale</option>
-                    <option value="1">1 — Symptômes légers</option>
-                    <option value="2">2 — Alité &lt; 50% du temps</option>
-                    <option value="3">3 — Alité &gt; 50% du temps</option>
-                    <option value="4">4 — Complètement invalide</option>
-                    <option value="U">U — Inconnu</option>
+                    <option style={{ background: 'white' }} value="">
+                      — Sélectionner —
+                    </option>
+                    <option style={{ background: 'white' }} value="0">
+                      0 — Activité normale
+                    </option>
+                    <option style={{ background: 'white' }} value="1">
+                      1 — Symptômes légers
+                    </option>
+                    <option style={{ background: 'white' }} value="2">
+                      2 — Alité &lt; 50% du temps
+                    </option>
+                    <option style={{ background: 'white' }} value="3">
+                      3 — Alité &gt; 50% du temps
+                    </option>
+                    <option style={{ background: 'white' }} value="4">
+                      4 — Complètement invalide
+                    </option>
+                    <option style={{ background: 'white' }} value="U">
+                      U — Inconnu
+                    </option>
                   </select>
                 </Field>
                 <Field label="Observations cliniques">
@@ -424,8 +474,12 @@ export default function NewDiagnosticPage() {
                 <Row>
                   <Field label="Récepteurs œstrogènes (RE)">
                     <select {...register('recepteur_re')} style={selectStyle()}>
-                      <option value="">— Sélectionner —</option>
-                      {MARQUEUR_OPTIONS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+                      <option style={{ background: 'white' }} value="">
+                        — Sélectionner —
+                      </option>
+                      {MARQUEUR_OPTIONS.map(o => <option  key={o.v} value={o.v} style={{ background: 'white' }}>
+                        {o.l}
+                      </option>)}
                     </select>
                   </Field>
                   <Field label="% RE">
@@ -435,8 +489,12 @@ export default function NewDiagnosticPage() {
                 <Row>
                   <Field label="Récepteurs progestérone (RP)">
                     <select {...register('recepteur_rp')} style={selectStyle()}>
-                      <option value="">— Sélectionner —</option>
-                      {MARQUEUR_OPTIONS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+                      <option style={{ background: 'white' }} value="">
+                        — Sélectionner —
+                      </option>
+                      {MARQUEUR_OPTIONS.map(o => <option style={{ background: 'white' }} key={o.v} value={o.v}>
+                        {o.l}
+                      </option>)}
                     </select>
                   </Field>
                   <Field label="% RP">
@@ -446,18 +504,26 @@ export default function NewDiagnosticPage() {
                 <Row>
                   <Field label="HER2 (IHC)">
                     <select {...register('her2')} style={selectStyle()}>
-                      <option value="">— Sélectionner —</option>
-                      <option value="positif">✓ Positif (3+)</option>
-                      <option value="equivoque">~ Équivoque (2+)</option>
-                      <option value="negatif">✗ Négatif (0/1+)</option>
-                      <option value="inconnu">Inconnu</option>
+                      <option style={{ background: 'white' }} value="">
+                        — Sélectionner —
+                      </option>
+                      <option style={{ background: 'white' }} value="positif">✓ Positif (3+)</option>
+                      <option style={{ background: 'white' }} value="equivoque">~ Équivoque (2+)</option>
+                      <option style={{ background: 'white' }} value="negatif">✗ Négatif (0/1+)</option>
+                      <option style={{ background: 'white' }} value="inconnu">Inconnu</option>
                     </select>
                   </Field>
                   <Field label="HER2 FISH">
                     <select {...register('her2_fish')} style={selectStyle()}>
-                      <option value="non_fait">Non fait</option>
-                      <option value="amplifie">Amplifié</option>
-                      <option value="non_amplifie">Non amplifié</option>
+                      <option style={{ background: 'white' }} value="non_fait">
+                        Non fait
+                      </option>
+                      <option style={{ background: 'white' }} value="amplifie">
+                        Amplifié
+                      </option>
+                      <option style={{ background: 'white' }} value="non_amplifie">
+                        Non amplifié
+                      </option>
                     </select>
                   </Field>
                 </Row>
@@ -479,26 +545,34 @@ export default function NewDiagnosticPage() {
                   <Field label="PD-L1"><input {...register('pdl1')} placeholder="Ex: 50%" style={inputStyle()} /></Field>
                   <Field label="Statut MMR">
                     <select {...register('mmr_status')} style={selectStyle()}>
-                      <option value="">— Sélectionner —</option>
-                      <option value="proficient">pMMR — Proficient</option>
-                      <option value="deficient">dMMR — Déficient</option>
-                      <option value="inconnu">Inconnu</option>
+                      <option style={{ background: 'white' }} value="">
+                        — Sélectionner —
+                      </option>
+                      <option style={{ background: 'white' }} value="proficient">
+                        pMMR — Proficient
+                      </option>
+                      <option style={{ background: 'white' }} value="deficient">
+                        dMMR — Déficient
+                      </option>
+                      <option style={{ background: 'white' }} value="inconnu">
+                        Inconnu
+                      </option>
                     </select>
                   </Field>
                 </Row>
 
                 <SectionTitle style={{ marginTop: 20 }}>Biologie moléculaire</SectionTitle>
                 <Row>
-                  <Field label="EGFR"><select {...register('egfr')} style={selectStyle()}><option value="">—</option>{MOLEC_OPTIONS.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
-                  <Field label="KRAS"><select {...register('kras')} style={selectStyle()}><option value="">—</option>{MOLEC_OPTIONS.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
+                  <Field label="EGFR"><select {...register('egfr')} style={selectStyle()}><option style={{ background: 'white' }} value="">—</option>{MOLEC_OPTIONS.map(o=><option style={{ background: 'white' }} key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
+                  <Field label="KRAS"><select {...register('kras')} style={selectStyle()}><option style={{ background: 'white' }} value="">—</option>{MOLEC_OPTIONS.map(o=><option style={{ background: 'white' }} key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
                 </Row>
                 <Row>
-                  <Field label="BRAF"><select {...register('braf')} style={selectStyle()}><option value="">—</option>{MOLEC_OPTIONS.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
-                  <Field label="ALK"><select {...register('alk')} style={selectStyle()}><option value="">—</option>{MOLEC_OPTIONS.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
+                  <Field label="BRAF"><select {...register('braf')} style={selectStyle()}><option style={{ background: 'white' }} value="">—</option>{MOLEC_OPTIONS.map(o=><option style={{ background: 'white' }} key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
+                  <Field label="ALK"><select {...register('alk')} style={selectStyle()}><option style={{ background: 'white' }} value="">—</option>{MOLEC_OPTIONS.map(o=><option style={{ background: 'white' }} key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
                 </Row>
                 <Row>
-                  <Field label="BRCA1"><select {...register('brca1')} style={selectStyle()}><option value="">—</option>{MOLEC_OPTIONS.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
-                  <Field label="BRCA2"><select {...register('brca2')} style={selectStyle()}><option value="">—</option>{MOLEC_OPTIONS.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
+                  <Field label="BRCA1"><select {...register('brca1')} style={selectStyle()}><option style={{ background: 'white' }} value="">—</option>{MOLEC_OPTIONS.map(o=><option style={{ background: 'white' }} key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
+                  <Field label="BRCA2"><select {...register('brca2')} style={selectStyle()}><option style={{ background: 'white' }} value="">—</option>{MOLEC_OPTIONS.map(o=><option style={{ background: 'white' }} key={o.v} value={o.v}>{o.l}</option>)}</select></Field>
                 </Row>
                 <Row>
                   <Field label="TMB (mut/Mb)"><input {...register('tmb')} type="number" placeholder="Ex: 12" style={inputStyle()} /></Field>
@@ -554,19 +628,19 @@ export default function NewDiagnosticPage() {
                 <Row>
                   <Field label="Statut du dossier">
                     <select {...register('statut_dossier')} style={selectStyle()}>
-                      {STATUT_DOSSIER_OPTIONS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+                      {STATUT_DOSSIER_OPTIONS.map(o => <option style={{ background: 'white' }} key={o.v} value={o.v}>{o.l}</option>)}
                     </select>
                   </Field>
                   <Field label="Diagnostic principal">
                     <select {...register('est_principal')} style={selectStyle()}>
-                      <option value="true">Oui</option>
-                      <option value="false">Non</option>
+                      <option style={{background:'white'}} value="true">Oui</option>
+                      <option style={{background:'white'}} value="false">Non</option>
                     </select>
                   </Field>
                 </Row>
 
                 <SectionTitle style={{ marginTop: 20 }}>Imagerie réalisée</SectionTitle>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 24px',background: 'white', padding: 16, borderRadius: 'var(--radius-md)' }}>
                   {[
                     { key: 'img_scanner',       label: 'Scanner'        },
                     { key: 'img_irm_cerebrale', label: 'IRM cérébrale'  },

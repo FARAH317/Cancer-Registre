@@ -188,10 +188,18 @@ export default function NewPatientPage() {
                 <Row>
                   <Field label="Sexe *" error={errors.sexe?.message}>
                     <select {...register('sexe', { required: 'Sexe requis' })} style={selectStyle(errors.sexe)}>
-                      <option value="">Selectionner</option>
-                      <option value="M">Masculin</option>
-                      <option value="F">Feminin</option>
-                      <option value="U">Inconnu</option>
+                      <option style={{ background: 'white' }} value="">
+                        Selectionner
+                      </option>
+                      <option style={{ background: 'white' }} value="M">
+                        Masculin
+                      </option>
+                      <option style={{ background: 'white' }} value="F">
+                        Feminin
+                      </option>
+                      <option style={{ background: 'white' }} value="U">
+                        Inconnu
+                      </option>
                     </select>
                   </Field>
                   <Field label="Date de naissance">
@@ -234,15 +242,19 @@ export default function NewPatientPage() {
                 <Row>
                   <Field label="Wilaya">
                     <select {...register('wilaya')} style={selectStyle()} onChange={e => { setValue('wilaya', e.target.value); setValue('commune', ''); }}>
-                      <option value="">Selectionner une wilaya</option>
-                      {WILAYAS.map(w => <option key={w} value={w}>{w}</option>)}
+                      <option style={{ background: 'white' }} value="">
+                        Selectionner une wilaya
+                      </option>
+                      {WILAYAS.map(w => <option style={{ background: 'white' }} key={w} value={w}>{w}</option>)}
                     </select>
                   </Field>
                   <Field label="Commune">
                     {communesDispo.length > 0 ? (
                       <select {...register('commune')} style={selectStyle()}>
-                        <option value="">Selectionner une commune</option>
-                        {communesDispo.map(c => <option key={c} value={c}>{c}</option>)}
+                        <option style={{ background: 'white' }} value="">
+                          Selectionner une commune
+                        </option>
+                        {communesDispo.map(c => <option style={{ background: 'white' }} key={c} value={c}>{c}</option>)}
                       </select>
                     ) : (
                       <div style={{ ...inputStyle(), display: 'flex', alignItems: 'center', color: 'var(--text-muted)', fontSize: 12.5 }}>
@@ -278,28 +290,28 @@ export default function NewPatientPage() {
                 <Row>
                   <Field label="Niveau d'instruction">
                     <select {...register('niveau_instruction')} style={selectStyle()}>
-                      <option value="9">Inconnu</option><option value="0">Aucun</option>
-                      <option value="1">Primaire</option><option value="2">Moyen</option>
-                      <option value="3">Secondaire</option><option value="4">Superieur</option>
+                      <option style={{ background: 'white' }} value="9">Inconnu</option><option style={{ background: 'white' }} value="0">Aucun</option>
+                      <option style={{ background: 'white' }} value="1">Primaire</option><option style={{ background: 'white' }} value="2">Moyen</option>
+                      <option style={{ background: 'white' }} value="3">Secondaire</option><option style={{ background: 'white' }} value="4">Superieur</option>
                     </select>
                   </Field>
                   <Field label="Profession">
                     <select {...register('profession')} style={selectStyle()}>
-                      <option value="INC">Inconnu</option><option value="AGR">Agriculteur</option>
-                      <option value="FON">Fonctionnaire</option><option value="COM">Commercant</option>
-                      <option value="ART">Artisan</option><option value="ETU">Etudiant</option>
-                      <option value="RET">Retraite</option><option value="SEM">Sans emploi</option>
-                      <option value="FFO">Femme au foyer</option><option value="PSA">Professionnel de sante</option>
-                      <option value="AUT">Autre</option>
+                      <option style={{ background: 'white' }} value="INC">Inconnu</option><option style={{ background: 'white' }} value="AGR">Agriculteur</option>
+                      <option style={{ background: 'white' }} value="FON">Fonctionnaire</option><option style={{ background: 'white' }} value="COM">Commercant</option>
+                      <option style={{ background: 'white' }} value="ART">Artisan</option><option style={{ background: 'white' }} value="ETU">Etudiant</option>
+                      <option style={{ background: 'white' }} value="RET">Retraite</option><option style={{ background: 'white' }} value="SEM">Sans emploi</option>
+                      <option style={{ background: 'white' }} value="FFO">Femme au foyer</option><option style={{ background: 'white' }} value="PSA">Professionnel de sante</option>
+                      <option style={{ background: 'white' }} value="AUT">Autre</option>
                     </select>
                   </Field>
                 </Row>
                 <Row>
                   <Field label="Situation familiale">
                     <select {...register('situation_familiale')} style={selectStyle()}>
-                      <option value="inconnu">Inconnu</option><option value="celibataire">Celibataire</option>
-                      <option value="marie">Marie(e)</option><option value="divorce">Divorce(e)</option>
-                      <option value="veuf">Veuf/Veuve</option>
+                      <option style={{ background: 'white' }} value="inconnu">Inconnu</option><option style={{ background: 'white' }} value="celibataire">Celibataire</option>
+                      <option style={{ background: 'white' }} value="marie">Marie(e)</option><option style={{ background: 'white' }} value="divorce">Divorce(e)</option>
+                      <option style={{ background: 'white' }} value="veuf">Veuf/Veuve</option>
                     </select>
                   </Field>
                   <Field label="Nombre d'enfants">
@@ -313,14 +325,14 @@ export default function NewPatientPage() {
                 <Row>
                   <Field label="Statut du dossier">
                     <select {...register('statut_dossier')} style={selectStyle()}>
-                      <option value="nouveau">Nouveau</option><option value="traitement">En traitement</option>
-                      <option value="remission">Remission</option><option value="perdu">Perdu de vue</option>
+                      <option style={{ background: 'white' }} value="nouveau">Nouveau</option><option style={{ background: 'white' }} value="traitement">En traitement</option>
+                      <option style={{ background: 'white' }} value="remission">Remission</option><option style={{ background: 'white' }} value="perdu">Perdu de vue</option>
                     </select>
                   </Field>
                   <Field label="Statut vital">
                     <select {...register('statut_vital')} style={selectStyle()}>
-                      <option value="inconnu">Inconnu</option><option value="vivant">Vivant</option>
-                      <option value="decede">Decede</option><option value="perdu">Perdu de vue</option>
+                      <option style={{ background: 'white' }} value="inconnu">Inconnu</option><option style={{ background: 'white' }} value="vivant">Vivant</option>
+                      <option style={{ background: 'white' }} value="decede">Decede</option><option style={{ background: 'white' }} value="perdu">Perdu de vue</option>
                     </select>
                   </Field>
                 </Row>
@@ -344,28 +356,28 @@ export default function NewPatientPage() {
                 <Row>
                   <Field label="Tabagisme">
                     <select {...register('tabagisme')} style={selectStyle()}>
-                      <option value="inconnu">Inconnu</option><option value="non">Non-fumeur</option>
-                      <option value="ex">Ex-fumeur</option><option value="actif">Fumeur actif</option>
+                      <option style={{ background: 'white' }} value="inconnu">Inconnu</option><option style={{ background: 'white' }} value="non">Non-fumeur</option>
+                      <option style={{ background: 'white' }} value="ex">Ex-fumeur</option><option style={{ background: 'white' }} value="actif">Fumeur actif</option>
                     </select>
                   </Field>
                   <Field label="Consommation d'alcool">
                     <select {...register('alcool')} style={selectStyle()}>
-                      <option value="inconnu">Inconnu</option><option value="non">Non</option><option value="oui">Oui</option>
+                      <option style={{ background: 'white' }} value="inconnu">Inconnu</option><option style={{ background: 'white' }} value="non">Non</option><option style={{ background: 'white' }} value="oui">Oui</option>
                     </select>
                   </Field>
                 </Row>
                 <Row>
                   <Field label="Activite physique">
                     <select {...register('activite_physique')} style={selectStyle()}>
-                      <option value="inconnu">Inconnu</option><option value="sedentaire">Sedentaire</option>
-                      <option value="moderee">Moderee</option><option value="active">Active</option>
+                      <option style={{ background: 'white' }} value="inconnu">Inconnu</option><option style={{ background: 'white' }} value="sedentaire">Sedentaire</option>
+                      <option style={{ background: 'white' }} value="moderee">Moderee</option><option style={{ background: 'white' }} value="active">Active</option>
                     </select>
                   </Field>
                   <Field label="Alimentation">
                     <select {...register('alimentation')} style={selectStyle()}>
-                      <option value="inconnu">Inconnu</option><option value="equilibree">Equilibree</option>
-                      <option value="grasse">Riche en graisses</option><option value="sucree">Riche en sucres</option>
-                      <option value="vegetarienne">Vegetarienne/Vegane</option>
+                      <option style={{ background: 'white' }} value="inconnu">Inconnu</option><option style={{ background: 'white' }} value="equilibree">Equilibree</option>
+                      <option style={{ background: 'white' }} value="grasse">Riche en graisses</option><option style={{ background: 'white' }} value="sucree">Riche en sucres</option>
+                      <option style={{ background: 'white' }} value="vegetarienne">Vegetarienne/Vegane</option>
                     </select>
                   </Field>
                 </Row>

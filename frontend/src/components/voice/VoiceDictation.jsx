@@ -1,23 +1,20 @@
 /**
  * components/voice/VoiceDictation.jsx
- * Compatible avec useSpeechRecognition basé sur MediaRecorder + Groq Whisper.
- * Aucune dépendance Google — fonctionne en HTTP local et réseau restreint.
+ * Version avec logs de debug complets
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import useSpeechRecognition from '../../hooks/useSpeechRecognition';
 import useVoiceToForm from '../../hooks/useVoiceToForm';
 
 const STATES = {
-  idle:         { color: '#00a8ff', bg: 'rgba(0,168,255,0.1)',  border: 'rgba(0,168,255,0.25)',  label: 'Dicter'         },
-  listening:    { color: '#ff4d6a', bg: 'rgba(255,77,106,0.1)', border: 'rgba(255,77,106,0.4)',  label: 'Enregistrement' },
-  transcribing: { color: '#9b8afb', bg: 'rgba(155,138,251,0.1)',border: 'rgba(155,138,251,0.35)',label: 'Transcription'  },
-  extracting:   { color: '#f5a623', bg: 'rgba(245,166,35,0.1)', border: 'rgba(245,166,35,0.35)', label: 'Analyse...'     },
-  success:      { color: '#00e5a0', bg: 'rgba(0,229,160,0.1)',  border: 'rgba(0,229,160,0.35)',  label: 'Rempli !'       },
-  error:        { color: '#ff4d6a', bg: 'rgba(255,77,106,0.08)',border: 'rgba(255,77,106,0.3)',  label: 'Erreur'         },
+  idle:        { color: '#00a8ff', bg: 'rgba(0,168,255,0.1)',   border: 'rgba(0,168,255,0.25)',   label: 'Dicter'       },
+  listening:   { color: '#ff4d6a', bg: 'rgba(255,77,106,0.1)',  border: 'rgba(255,77,106,0.4)',   label: 'Écoute...'    },
+  extracting:  { color: '#f5a623', bg: 'rgba(245,166,35,0.1)',  border: 'rgba(245,166,35,0.35)',  label: 'Analyse...'   },
+  success:     { color: '#00e5a0', bg: 'rgba(0,229,160,0.1)',   border: 'rgba(0,229,160,0.35)',   label: 'Rempli !'     },
+  error:       { color: '#ff4d6a', bg: 'rgba(255,77,106,0.08)', border: 'rgba(255,77,106,0.3)',   label: 'Erreur'       },
 };
 
-// ── Icônes ────────────────────────────────────────────────────────
 function MicIcon({ size = 18, color = 'currentColor' }) {
   return (
     <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke={color} strokeWidth={1.8}>
@@ -26,6 +23,7 @@ function MicIcon({ size = 18, color = 'currentColor' }) {
     </svg>
   );
 }
+
 function StopIcon({ size = 18 }) {
   return (
     <svg width={size} height={size} fill="currentColor" viewBox="0 0 24 24">
@@ -33,25 +31,28 @@ function StopIcon({ size = 18 }) {
     </svg>
   );
 }
+
 function SpinnerIcon({ size = 16, color = '#f5a623' }) {
   return (
     <div style={{
       width: size, height: size,
-      border: `2px solid ${color}30`, borderTopColor: color,
-      borderRadius: '50%', animation: 'voice-spin 0.7s linear infinite',
+      border: `2px solid ${color}30`,
+      borderTopColor: color,
+      borderRadius: '50%',
+      animation: 'voice-spin 0.7s linear infinite',
     }} />
   );
 }
 
-// ── Ondes sonores animées ─────────────────────────────────────────
 function SoundWave({ active, color }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 16 }}>
       {[0, 1, 2, 3, 4].map(i => (
         <div key={i} style={{
-          width: 3, borderRadius: 2, background: color,
+          width: 3, borderRadius: 2,
+          background: color,
           height: active ? `${8 + Math.sin(i * 1.2) * 6}px` : '4px',
-          animation: active ? 'voice-wave 0.8s ease-in-out infinite' : 'none',
+          animation: active ? `voice-wave 0.8s ease-in-out infinite` : 'none',
           animationDelay: `${i * 0.12}s`,
           transition: 'height 0.2s ease',
         }} />
@@ -60,35 +61,6 @@ function SoundWave({ active, color }) {
   );
 }
 
-// ── Timer d'enregistrement ────────────────────────────────────────
-function RecordTimer({ running }) {
-  const [seconds, setSeconds] = useState(0);
-  const intervalRef = useRef(null);
-
-  useEffect(() => {
-    if (running) {
-      setSeconds(0);
-      intervalRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
-    } else {
-      clearInterval(intervalRef.current);
-    }
-    return () => clearInterval(intervalRef.current);
-  }, [running]);
-
-  if (!running) return null;
-  const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
-  const ss = String(seconds % 60).padStart(2, '0');
-  return (
-    <span style={{
-      fontFamily: 'var(--font-mono)', fontSize: 11, color: '#ff4d6a',
-      background: 'rgba(255,77,106,0.1)', padding: '2px 6px', borderRadius: 4,
-    }}>
-      ● {mm}:{ss}
-    </span>
-  );
-}
-
-// ── Labels des champs ─────────────────────────────────────────────
 const FIELD_LABELS = {
   nom: 'Nom', prenom: 'Prénom', date_naissance: 'Date naissance',
   lieu_naissance: 'Lieu naissance', sexe: 'Sexe', telephone: 'Téléphone',
@@ -112,32 +84,31 @@ const FIELD_LABELS = {
   plan_traitement: 'Plan traitement', prochain_rdv: 'Prochain RDV',
 };
 
-// ── Panel transcription + résultats ──────────────────────────────
-function TranscriptPanel({ transcript, fields, uiState, color }) {
+function TranscriptPanel({ transcript, interimText, fields, color }) {
   const hasFields = fields && Object.keys(fields).length > 0;
 
   return (
     <div style={{
-      marginTop: 10, background: 'var(--bg-elevated)',
-      border: `1px solid ${color}30`, borderRadius: 10,
-      overflow: 'hidden', animation: 'voice-fadein 0.2s ease',
+      marginTop: 10,
+      background: 'var(--bg-elevated)',
+      border: `1px solid ${color}30`,
+      borderRadius: 10,
+      overflow: 'hidden',
+      animation: 'voice-fadein 0.2s ease',
     }}>
-      {transcript && (
+      {(transcript || interimText) && (
         <div style={{ padding: '10px 14px', borderBottom: hasFields ? `1px solid ${color}20` : 'none' }}>
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 5, letterSpacing: 0.8, textTransform: 'uppercase' }}>
             Transcription
           </div>
           <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
             {transcript}
+            {interimText && (
+              <span style={{ color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>
+                {' '}{interimText}
+              </span>
+            )}
           </p>
-        </div>
-      )}
-
-      {/* Spinner pendant l'extraction LLM */}
-      {uiState === 'extracting' && (
-        <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <SpinnerIcon size={14} color="#f5a623" />
-          <span style={{ fontSize: 12, color: '#f5a623' }}>Extraction des champs en cours...</span>
         </div>
       )}
 
@@ -152,22 +123,26 @@ function TranscriptPanel({ transcript, fields, uiState, color }) {
               <div key={key} style={{
                 padding: '3px 10px', borderRadius: 20,
                 background: 'rgba(0,229,160,0.08)',
-                border: '1px solid rgba(0,229,160,0.2)', fontSize: 11.5,
+                border: '1px solid rgba(0,229,160,0.2)',
+                fontSize: 11.5,
               }}>
                 <span style={{ color: 'rgba(255,255,255,0.35)', marginRight: 4 }}>
                   {FIELD_LABELS[key] || key}
                 </span>
-                <span style={{ color: '#00e5a0', fontWeight: 600 }}>{String(val)}</span>
+                <span style={{ color: '#00e5a0', fontWeight: 600 }}>
+                  {String(val)}
+                </span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {!hasFields && transcript && uiState !== 'extracting' && (
+      {/* Message si extraction vide */}
+      {!hasFields && transcript && (
         <div style={{ padding: '10px 14px' }}>
           <div style={{ fontSize: 12, color: 'rgba(255,77,106,0.8)' }}>
-            ⚠️ Aucun champ reconnu — essayez de dicter plus clairement
+            ⚠️ Aucun champ reconnu — essayez de dicter plus clairement (ex: "Nom Benali prénom Mohamed")
           </div>
         </div>
       )}
@@ -175,74 +150,101 @@ function TranscriptPanel({ transcript, fields, uiState, color }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────
-// COMPOSANT PRINCIPAL
-// ─────────────────────────────────────────────────────────────────
 export default function VoiceDictation({ formType = 'patient', onFieldsExtracted, compact = false }) {
   const [uiState,         setUiState]         = useState('idle');
   const [extractedFields, setExtractedFields] = useState(null);
   const [showPanel,       setShowPanel]       = useState(false);
+  const [isPushHeld,      setIsPushHeld]      = useState(false);
+  const holdTimerRef = useRef(null);
 
   const { extractFields, isExtracting, extractError } = useVoiceToForm(formType);
 
-  // ── Callback quand la transcription Whisper est prête ─────
+  // ── Callback quand la transcription est complète ──────────
   const handleTranscript = useCallback(async (text) => {
-    if (!text?.trim()) return;
+    console.log('🎤 ÉTAPE 1 — Transcription reçue:', text);
+
+    if (!text || text.trim() === '') {
+      console.warn('❌ Transcription vide — rien à envoyer');
+      return;
+    }
 
     setUiState('extracting');
     setShowPanel(true);
 
+    console.log('🔄 ÉTAPE 2 — Envoi au proxy Django...');
     const fields = await extractFields(text);
+
+    console.log('📦 ÉTAPE 3 — Champs reçus:', fields);
+    console.log('📊 Nombre de champs:', Object.keys(fields || {}).length);
 
     if (fields && Object.keys(fields).length > 0) {
       setExtractedFields(fields);
       setUiState('success');
+      console.log('✅ ÉTAPE 4 — Appel onFieldsExtracted avec:', fields);
       onFieldsExtracted?.(fields);
       setTimeout(() => setUiState('idle'), 3000);
     } else {
+      console.warn('❌ Aucun champ extrait — fields vide ou null');
       setUiState('error');
       setTimeout(() => setUiState('idle'), 2500);
     }
   }, [extractFields, onFieldsExtracted]);
 
   const {
-    isListening, isTranscribing, transcript, error,
+    isListening, transcript, interimText, error,
     supported, start, stop, toggle, reset,
   } = useSpeechRecognition({ onTranscript: handleTranscript });
 
-  // État UI courant
-  const currentUiState = isTranscribing ? 'transcribing'
-    : isExtracting    ? 'extracting'
-    : isListening     ? 'listening'
+  const currentUiState = isExtracting ? 'extracting'
+    : isListening ? 'listening'
     : uiState;
 
   const s = STATES[currentUiState] || STATES.idle;
 
+  // ── Mode push-to-talk ─────────────────────────────────────
+  const handleMouseDown = useCallback(() => {
+    holdTimerRef.current = setTimeout(() => {
+      console.log('🎙️ Push-to-talk activé');
+      setIsPushHeld(true);
+      start();
+    }, 200);
+  }, [start]);
+
+  const handleMouseUp = useCallback(() => {
+    clearTimeout(holdTimerRef.current);
+    if (isPushHeld) {
+      console.log('🎙️ Push-to-talk relâché');
+      setIsPushHeld(false);
+      stop();
+    }
+  }, [isPushHeld, stop]);
+
+  // ── Mode toggle ───────────────────────────────────────────
   const handleClick = useCallback(() => {
-    if (currentUiState === 'extracting' || currentUiState === 'transcribing') return;
+    if (isPushHeld) return;
+    if (currentUiState === 'extracting') return;
     if (currentUiState === 'success' || currentUiState === 'error') {
       reset();
       setExtractedFields(null);
       setUiState('idle');
       return;
     }
+    console.log('🎙️ Toggle micro — isListening:', isListening);
     toggle();
     setShowPanel(true);
-  }, [currentUiState, toggle, reset]);
+  }, [isPushHeld, currentUiState, toggle, reset, isListening]);
 
   if (!supported) {
     return (
       <div style={{
         padding: '8px 14px', borderRadius: 8, fontSize: 12,
-        background: 'rgba(245,166,35,0.08)', border: '1px solid rgba(245,166,35,0.2)',
-        color: '#f5a623',
+        background: 'rgba(255,77,106,0.08)', border: '1px solid rgba(255,77,106,0.2)',
+        color: '#ff4d6a',
       }}>
-        ⚠️ Saisie vocale non supportée — utilisez un navigateur moderne (Chrome, Firefox, Edge)
+        ⚠️ Saisie vocale non supportée — utilisez Chrome ou Edge
       </div>
     );
   }
-
-  const isBusy = currentUiState === 'transcribing' || currentUiState === 'extracting';
 
   return (
     <div style={{ position: 'relative' }}>
@@ -255,23 +257,29 @@ export default function VoiceDictation({ formType = 'patient', onFieldsExtracted
 
       {/* ── Bouton principal ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+
         <button
           onClick={handleClick}
-          disabled={isBusy}
-          title={isListening ? 'Arrêter l\'enregistrement' : 'Démarrer la dictée vocale'}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          title={isListening ? 'Arrêter — ou maintenir pour push-to-talk' : 'Dicter — ou maintenir pour push-to-talk'}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: compact ? '7px 10px' : '8px 16px',
-            background: s.bg, border: `1px solid ${s.border}`,
+            background: s.bg,
+            border: `1px solid ${s.border}`,
             borderRadius: 8,
-            cursor: isBusy ? 'wait' : 'pointer',
-            color: s.color, fontSize: 12.5, fontWeight: 600,
-            fontFamily: 'var(--font-body)', transition: 'all 0.2s ease',
+            cursor: currentUiState === 'extracting' ? 'wait' : 'pointer',
+            color: s.color,
+            fontSize: 12.5, fontWeight: 600,
+            fontFamily: 'var(--font-body)',
+            transition: 'all 0.2s ease',
             animation: isListening ? 'voice-pulse 1.5s infinite' : 'none',
-            opacity: isBusy ? 0.85 : 1,
+            userSelect: 'none',
           }}
         >
-          {currentUiState === 'transcribing' || currentUiState === 'extracting' ? (
+          {currentUiState === 'extracting' ? (
             <SpinnerIcon size={16} color={s.color} />
           ) : isListening ? (
             <StopIcon size={16} />
@@ -280,20 +288,16 @@ export default function VoiceDictation({ formType = 'patient', onFieldsExtracted
           )}
 
           {isListening && <SoundWave active={true} color={s.color} />}
+
           {!compact && <span>{s.label}</span>}
         </button>
 
-        {/* Timer pendant l'enregistrement */}
-        <RecordTimer running={isListening} />
-
-        {/* Hint mode */}
-        {!compact && !isListening && !isBusy && (
+        {!compact && (
           <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.2)', letterSpacing: 0.3 }}>
-            Cliquez pour dicter — sans Google
+            {isPushHeld ? '🔴 Push-to-talk actif' : 'Click ou maintenir'}
           </span>
         )}
 
-        {/* Bouton masquer/afficher panel */}
         {(transcript || extractedFields) && (
           <button
             onClick={() => setShowPanel(v => !v)}
@@ -308,7 +312,7 @@ export default function VoiceDictation({ formType = 'patient', onFieldsExtracted
         )}
       </div>
 
-      {/* ── Erreurs ── */}
+      {/* ── Erreur microphone ou extraction ── */}
       {(error || extractError) && (
         <div style={{
           marginTop: 8, padding: '7px 12px', borderRadius: 7, fontSize: 12,
@@ -319,12 +323,12 @@ export default function VoiceDictation({ formType = 'patient', onFieldsExtracted
         </div>
       )}
 
-      {/* ── Panel transcription + champs ── */}
-      {showPanel && (transcript || extractedFields || currentUiState === 'extracting') && (
+      {/* ── Panel transcription + champs extraits ── */}
+      {showPanel && (transcript || interimText || extractedFields) && (
         <TranscriptPanel
           transcript={transcript}
+          interimText={interimText}
           fields={extractedFields}
-          uiState={currentUiState}
           color={s.color}
         />
       )}
@@ -333,5 +337,11 @@ export default function VoiceDictation({ formType = 'patient', onFieldsExtracted
 }
 
 export function VoiceMiniButton({ formType, onFieldsExtracted }) {
-  return <VoiceDictation formType={formType} onFieldsExtracted={onFieldsExtracted} compact={true} />;
+  return (
+    <VoiceDictation
+      formType={formType}
+      onFieldsExtracted={onFieldsExtracted}
+      compact={true}
+    />
+  );
 }

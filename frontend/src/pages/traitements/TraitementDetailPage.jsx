@@ -4,7 +4,7 @@ import { traitementService } from '../../services/traitementService';
 import { AppLayout } from '../../components/layout/Sidebar';
 import toast from 'react-hot-toast';
 
-// ── Config ────────────────────────────────────────────────────────
+// ── Config types ──────────────────────────────────────────────────
 const TYPE_CONFIG = {
   chimio:    { label: 'Chimiothérapie',  color: '#00a8ff', icon: 'Cx', bg: 'rgba(0,168,255,0.12)',   border: 'rgba(0,168,255,0.3)'   },
   radio:     { label: 'Radiothérapie',   color: '#f5a623', icon: 'Rx', bg: 'rgba(245,166,35,0.12)',  border: 'rgba(245,166,35,0.3)'  },
@@ -42,9 +42,9 @@ export default function TraitementDetailPage() {
   const navigate     = useNavigate();
   const cfg          = TYPE_CONFIG[type] || TYPE_CONFIG.chimio;
 
-  const [data,       setData]      = useState(null);
-  const [loading,    setLoading]   = useState(true);
-  const [activeTab,  setActiveTab] = useState('apercu');
+  const [data,      setData]      = useState(null);
+  const [loading,   setLoading]   = useState(true);
+  const [activeTab, setActiveTab] = useState('apercu');
 
   useEffect(() => {
     const svc = traitementService[type];
@@ -71,11 +71,11 @@ export default function TraitementDetailPage() {
   const dur = duree(data.date_debut, data.date_fin);
 
   const TABS = [
-    { key: 'apercu',      label: 'Aperçu'           },
-    { key: 'protocole',   label: 'Protocole'         },
-    { key: 'progression', label: 'Progression'       },
-    { key: 'medicaments', label: 'Médicaments'       },
-    { key: 'reponse',     label: 'Réponse & Toxicité'},
+    { key: 'apercu',      label: 'Aperçu'            },
+    { key: 'protocole',   label: 'Protocole'          },
+    { key: 'progression', label: 'Progression'        },
+    { key: 'medicaments', label: 'Médicaments'        },
+    { key: 'reponse',     label: 'Réponse & Toxicité' },
   ].filter(t => {
     if (t.key === 'medicaments') return type === 'chimio' && data.medicaments?.length > 0;
     if (t.key === 'reponse')     return type === 'chimio' || type === 'immuno';
@@ -94,23 +94,22 @@ export default function TraitementDetailPage() {
       <style>{`
         @keyframes spin      { to { transform: rotate(360deg); } }
         @keyframes fadeIn    { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes glow      { 0%,100% { box-shadow: 0 0 8px ${cfg.color}40; } 50% { box-shadow: 0 0 22px ${cfg.color}80; } }
         @keyframes fadeSlide { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes glow      { 0%,100% { box-shadow: 0 0 8px ${cfg.color}40; } 50% { box-shadow: 0 0 22px ${cfg.color}80; } }
       `}</style>
 
-      {/* ── HEADER ── identique à PatientDetailPage ── */}
+      {/* ── HEADER — identique à DiagnosticDetailPage ── */}
       <div style={{
         background: 'var(--bg-card)',
         border: '1px solid var(--border-light)',
         borderRadius: 'var(--radius-lg)',
-        padding: '20px 24px',
-        marginBottom: 20,
+        padding: '20px 24px', marginBottom: 20,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         flexWrap: 'wrap', gap: 16,
         animation: 'fadeIn .3s ease',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {/* Avatar style patient */}
+          {/* Avatar — même style que DiagnosticDetailPage */}
           <div style={{
             width: 56, height: 56, borderRadius: '50%', flexShrink: 0,
             background: `linear-gradient(135deg, ${cfg.bg}, ${cfg.color}18)`,
@@ -121,17 +120,25 @@ export default function TraitementDetailPage() {
           }}>
             {cfg.icon}
           </div>
+
           <div>
+            {/* Ligne titre + badges */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
                 {cfg.label}
               </h2>
-              <StatusBadge s={sc} />
+              {/* Badge statut */}
+              <span style={{
+                padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                background: sc.bg, color: sc.color, border: `1px solid ${sc.border}`,
+              }}>{sc.label}</span>
+              {/* Badge intention */}
               <span style={{
                 padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
                 background: 'var(--bg-elevated)', border: '1px solid var(--border)',
                 color: 'var(--text-muted)',
               }}>{data.intention_label}</span>
+              {/* Badge durée */}
               {dur && (
                 <span style={{
                   padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
@@ -140,6 +147,8 @@ export default function TraitementDetailPage() {
                 }}>{dur}</span>
               )}
             </div>
+
+            {/* Ligne infos secondaires — même style que DiagnosticDetailPage */}
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               <HeaderInfo label={data.patient_nom} sub={data.patient_numero} mono />
               <HeaderInfo label={fd(data.date_debut)} sub={data.date_fin ? `→ ${fd(data.date_fin)}` : 'En cours'} />
@@ -165,7 +174,7 @@ export default function TraitementDetailPage() {
         </div>
       </div>
 
-      {/* ── TABS ── même style que PatientDetailPage ── */}
+      {/* ── TABS — identiques à DiagnosticDetailPage ── */}
       <div style={{
         display: 'flex', marginBottom: 16,
         background: 'var(--bg-card)',
@@ -258,13 +267,13 @@ export default function TraitementDetailPage() {
                 })}
               </div>
 
-              {/* Métriques */}
+              {/* KPIs */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
-                <KpiCard label="Début"     value={fd(data.date_debut)}                             color={cfg.color} />
-                <KpiCard label="Fin"       value={data.date_fin ? fd(data.date_fin) : 'En cours'}  color={cfg.color} />
-                <KpiCard label="Durée"     value={dur || '—'}                                       color={cfg.color} />
-                <KpiCard label="Intention" value={data.intention_label}                            color={cfg.color} />
-                {type === 'chimio' && <KpiCard label="Cycles" value={`${data.cycles_realises ?? 0} / ${data.nombre_cycles ?? '?'}`} color={cfg.color} />}
+                <KpiCard label="Début"     value={fd(data.date_debut)}                            color={cfg.color} />
+                <KpiCard label="Fin"       value={data.date_fin ? fd(data.date_fin) : 'En cours'} color={cfg.color} />
+                <KpiCard label="Durée"     value={dur || '—'}                                      color={cfg.color} />
+                <KpiCard label="Intention" value={data.intention_label}                           color={cfg.color} />
+                {type === 'chimio' && <KpiCard label="Cycles"  value={`${data.cycles_realises ?? 0} / ${data.nombre_cycles ?? '?'}`}   color={cfg.color} />}
                 {type === 'radio'  && <KpiCard label="Séances" value={`${data.seances_realisees ?? 0} / ${data.nombre_seances ?? '?'}`} color={cfg.color} />}
                 {type === 'chimio' && data.reponse_tumorale && (
                   <KpiCard label="Réponse" value={data.reponse_label} color={REPONSE_C[data.reponse_tumorale] || '#6b7280'} />
@@ -302,57 +311,65 @@ export default function TraitementDetailPage() {
           <>
             <SectionLabel>Détail du protocole — {cfg.label}</SectionLabel>
             <TwoColGrid>
+
               {/* Chimiothérapie */}
               {type === 'chimio' && <>
-                <InfoRow label="Protocole"    value={<span style={{ fontFamily: 'var(--font-mono)', color: cfg.color, fontWeight: 700 }}>{data.protocole || '—'}</span>} />
-                <InfoRow label="Ligne"        value={`Ligne ${data.ligne}`} />
+                <InfoRow label="Protocole"     value={<span style={{ fontFamily:'var(--font-mono)', color:cfg.color, fontWeight:700 }}>{data.protocole || '—'}</span>} />
+                <InfoRow label="Ligne"         value={`Ligne ${data.ligne}`} />
                 <InfoRow label="Nombre cycles" value={`${data.cycles_realises ?? 0} / ${data.nombre_cycles ?? '?'}`} />
-                {f(data.intervalle_jours) && <InfoRow label="Intervalle"    value={`${data.intervalle_jours} jours`} />}
+                {f(data.intervalle_jours) && <InfoRow label="Intervalle" value={`${data.intervalle_jours} jours`} />}
                 <InfoRow label="Voie"          value={data.voie_label} />
               </>}
 
               {/* Radiothérapie */}
               {type === 'radio' && <>
-                <InfoRow label="Site irradié"     value={data.site_irradie} />
-                <InfoRow label="Technique"        value={data.technique_label} />
-                {f(data.dose_totale_gy)     && <InfoRow label="Dose totale"    value={<span style={{ fontFamily: 'var(--font-mono)', color: cfg.color }}>{data.dose_totale_gy} Gy</span>} />}
-                {f(data.dose_par_seance_gy) && <InfoRow label="Dose / séance"  value={`${data.dose_par_seance_gy} Gy`} />}
-                <InfoRow label="Séances"           value={`${data.seances_realisees ?? 0} / ${data.nombre_seances ?? '?'}`} />
-                {f(data.energie_mev)        && <InfoRow label="Énergie"         value={data.energie_mev} />}
-                <InfoRow label="Radiochimiothérapie" value={data.association_chimio ? '✓ Oui' : 'Non'} />
+                <InfoRow label="Site irradié"  value={data.site_irradie} />
+                <InfoRow label="Technique"     value={data.technique_label} />
+                {f(data.dose_totale_gy)     && <InfoRow label="Dose totale"   value={<span style={{ fontFamily:'var(--font-mono)', color:cfg.color }}>{data.dose_totale_gy} Gy</span>} />}
+                {f(data.dose_par_seance_gy) && <InfoRow label="Dose / séance" value={`${data.dose_par_seance_gy} Gy`} />}
+                <InfoRow label="Séances"       value={`${data.seances_realisees ?? 0} / ${data.nombre_seances ?? '?'}`} />
+                {f(data.energie_mev)        && <InfoRow label="Énergie"       value={data.energie_mev} />}
+                <InfoRow label="Radiochimiothérapie" value={data.association_chimio ? '✓ Oui' : '✗ Non'} />
               </>}
 
               {/* Chirurgie */}
               {type === 'chirurgie' && <>
-                <InfoRow label="Acte"          value={data.intitule_acte} />
-                <InfoRow label="Type"          value={data.type_label} />
-                <InfoRow label="Voie"          value={data.voie_label} />
+                <InfoRow label="Acte"  value={data.intitule_acte} />
+                <InfoRow label="Type"  value={data.type_label} />
+                <InfoRow label="Voie"  value={data.voie_label} />
                 {f(data.chirurgien) && <InfoRow label="Chirurgien" value={data.chirurgien} />}
-                {f(data.marges_resection) && <InfoRow label="Marges" value={
-                  <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: MARGES_C[data.marges_resection] || '#6b7280' }}>{data.marges_label}</span>
-                } />}
-                {data.curage_ganglionnaire && <InfoRow label="Curage" value={`${data.nb_ganglions_preleves ?? '?'} prélevés / ${data.nb_ganglions_envahis ?? '?'} envahis`} />}
-                {f(data.duree_hospitalisation) && <InfoRow label="Hospitalisation" value={`${data.duree_hospitalisation} jours`} />}
-                {f(data.complications) && <InfoRow label="Complications" value={data.complications} full />}
-                {f(data.compte_rendu_operatoire) && <InfoRow label="Compte rendu" value={data.compte_rendu_operatoire} full />}
+                {f(data.marges_resection) && (
+                  <InfoRow label="Marges" value={
+                    <span style={{ fontFamily:'var(--font-mono)', fontWeight:700, color: MARGES_C[data.marges_resection] || '#6b7280' }}>
+                      {data.marges_label}
+                    </span>
+                  } />
+                )}
+                {data.curage_ganglionnaire && (
+                  <InfoRow label="Curage" value={`${data.nb_ganglions_preleves ?? '?'} prélevés / ${data.nb_ganglions_envahis ?? '?'} envahis`} />
+                )}
+                {f(data.duree_hospitalisation)      && <InfoRow label="Hospitalisation"  value={`${data.duree_hospitalisation} jours`} />}
+                {f(data.complications)              && <InfoRow label="Complications"     value={data.complications} full />}
+                {f(data.compte_rendu_operatoire)    && <InfoRow label="Compte rendu"      value={data.compte_rendu_operatoire} full />}
               </>}
 
               {/* Hormonothérapie */}
               {type === 'hormono' && <>
-                <InfoRow label="Type"          value={data.type_label} />
-                <InfoRow label="Molécule"      value={<span style={{ fontFamily: 'var(--font-mono)', color: cfg.color, fontWeight: 700 }}>{data.molecule}</span>} />
-                {f(data.dose_mg_jour)      && <InfoRow label="Dose / jour"   value={`${data.dose_mg_jour} mg`} />}
-                {f(data.duree_mois_prevue) && <InfoRow label="Durée prévue"  value={`${data.duree_mois_prevue} mois`} />}
+                <InfoRow label="Type"     value={data.type_label} />
+                <InfoRow label="Molécule" value={<span style={{ fontFamily:'var(--font-mono)', color:cfg.color, fontWeight:700 }}>{data.molecule}</span>} />
+                {f(data.dose_mg_jour)      && <InfoRow label="Dose / jour"  value={`${data.dose_mg_jour} mg`} />}
+                {f(data.duree_mois_prevue) && <InfoRow label="Durée prévue" value={`${data.duree_mois_prevue} mois`} />}
               </>}
 
               {/* Immunothérapie */}
               {type === 'immuno' && <>
-                <InfoRow label="Type"          value={data.type_label} />
-                <InfoRow label="Molécule"      value={<span style={{ fontFamily: 'var(--font-mono)', color: cfg.color, fontWeight: 700 }}>{data.molecule}</span>} />
+                <InfoRow label="Type"     value={data.type_label} />
+                <InfoRow label="Molécule" value={<span style={{ fontFamily:'var(--font-mono)', color:cfg.color, fontWeight:700 }}>{data.molecule}</span>} />
                 {f(data.dose)              && <InfoRow label="Dose"        value={data.dose} />}
                 {f(data.nombre_cycles)     && <InfoRow label="Cycles"      value={data.nombre_cycles} />}
-                {f(data.biomarqueur_cible) && <InfoRow label="Biomarqueur" value={<span style={{ fontFamily: 'var(--font-mono)', color: cfg.color }}>{data.biomarqueur_cible}</span>} />}
+                {f(data.biomarqueur_cible) && <InfoRow label="Biomarqueur" value={<span style={{ fontFamily:'var(--font-mono)', color:cfg.color }}>{data.biomarqueur_cible}</span>} />}
               </>}
+
             </TwoColGrid>
           </>
         )}
@@ -362,10 +379,14 @@ export default function TraitementDetailPage() {
           <>
             <SectionLabel>Suivi de progression</SectionLabel>
             <TwoColGrid>
-              <InfoRow label="Statut actuel"   value={<StatusBadge s={sc} />} />
-              <InfoRow label="Intention"        value={data.intention_label} />
-              <InfoRow label="Date début"       value={fd(data.date_debut)} />
-              <InfoRow label="Date fin"         value={data.date_fin ? fd(data.date_fin) : 'En cours'} />
+              <InfoRow label="Statut actuel" value={
+                <span style={{ padding:'3px 10px', borderRadius:20, fontSize:11, fontWeight:600, background:sc.bg, color:sc.color, border:`1px solid ${sc.border}` }}>
+                  {sc.label}
+                </span>
+              } />
+              <InfoRow label="Intention"  value={data.intention_label} />
+              <InfoRow label="Date début" value={fd(data.date_debut)} />
+              <InfoRow label="Date fin"   value={data.date_fin ? fd(data.date_fin) : 'En cours'} />
               {type === 'chimio' && <>
                 <InfoRow label="Cycles réalisés"  value={`${data.cycles_realises ?? 0} sur ${data.nombre_cycles ?? '?'}`} />
                 {f(data.date_evaluation) && <InfoRow label="Date évaluation" value={fd(data.date_evaluation)} />}
@@ -375,7 +396,6 @@ export default function TraitementDetailPage() {
               )}
             </TwoColGrid>
 
-            {/* Barres visuelles */}
             {type === 'chimio' && (data.nombre_cycles ?? 0) > 0 && (
               <div style={{ marginTop: 20 }}>
                 <ProgressBar done={data.cycles_realises ?? 0} total={data.nombre_cycles} label="cycles réalisés" color={cfg.color} />
@@ -459,9 +479,10 @@ export default function TraitementDetailPage() {
                 <SectionLabel style={{ marginTop: 20 }}>Toxicité</SectionLabel>
                 <TwoColGrid>
                   <InfoRow label="Grade toxicité" value={
-                    <span style={{ fontWeight: 700, color: data.toxicite_grade >= 3 ? '#ff4d6a' : data.toxicite_grade >= 2 ? '#f5a623' : '#00e5a0' }}>
-                      Grade {data.toxicite_grade}
-                    </span>
+                    <span style={{ fontWeight: 700, color:
+                      data.toxicite_grade >= 3 ? '#ff4d6a' :
+                      data.toxicite_grade >= 2 ? '#f5a623' : '#00e5a0'
+                    }}>Grade {data.toxicite_grade}</span>
                   } />
                   {f(data.toxicite_description) && <InfoRow label="Description" value={data.toxicite_description} />}
                 </TwoColGrid>
@@ -479,18 +500,15 @@ export default function TraitementDetailPage() {
             )}
           </>
         )}
+
       </div>
     </AppLayout>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════
-// COMPOSANTS PARTAGÉS — même système que PatientDetailPage
+// COMPOSANTS — système identique à DiagnosticDetailPage
 // ═══════════════════════════════════════════════════════════════
-
-function Spinner() {
-  return <div style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />;
-}
 
 function HeaderInfo({ label, sub, mono }) {
   return (
@@ -513,15 +531,6 @@ function HeaderBtn({ children, accent, color }) {
       fontFamily: 'var(--font-body)',
       fontWeight: accent ? 600 : 400,
     }}>{children}</button>
-  );
-}
-
-function StatusBadge({ s }) {
-  return (
-    <span style={{
-      padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-      background: s.bg, color: s.color, border: `1px solid ${s.border}`,
-    }}>{s.label}</span>
   );
 }
 
