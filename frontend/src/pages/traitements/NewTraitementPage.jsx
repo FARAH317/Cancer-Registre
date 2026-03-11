@@ -8,37 +8,38 @@ import { diagnosticService } from '../../services/diagnosticService';
 import { AppLayout } from '../../components/layout/Sidebar';
 
 const TYPE_CONFIG = {
-  chimio:    { label: 'Chimiothérapie',    color: '#00a8ff' },
-  radio:     { label: 'Radiothérapie',     color: '#f5a623' },
-  chirurgie: { label: 'Chirurgie',         color: '#ff4d6a' },
-  hormono:   { label: 'Hormonothérapie',   color: '#00e5a0' },
-  immuno:    { label: 'Immunothérapie',    color: '#c084fc' },
+  chimio:    { label: 'Chimiothérapie',  color: '#00a8ff' },
+  radio:     { label: 'Radiothérapie',   color: '#f5a623' },
+  chirurgie: { label: 'Chirurgie',       color: '#ff4d6a' },
+  hormono:   { label: 'Hormonothérapie', color: '#00e5a0' },
+  immuno:    { label: 'Immunothérapie',  color: '#c084fc' },
 };
 
 export default function NewTraitementPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  // ✅ FIX : récupérer aussi setSearchParams
+  const [searchParams, setSearchParams] = useSearchParams();
   const type = searchParams.get('type') || 'chimio';
   const cfg  = TYPE_CONFIG[type] || TYPE_CONFIG.chimio;
 
-  const [submitting, setSubmitting] = useState(false);
-  const [patients, setPatients]     = useState([]);
+  const [submitting,  setSubmitting]  = useState(false);
+  const [patients,    setPatients]    = useState([]);
   const [diagnostics, setDiagnostics] = useState([]);
 
   const { register, handleSubmit, watch, control, formState: { errors } } = useForm({
     mode: 'onSubmit',
     defaultValues: {
-      patient:          searchParams.get('patient') || '',
-      intention:        'curatif',
-      statut:           'planifie',
-      tnm_type:         'c',
-      voie_administration: 'iv_perf',
-      voie_abord:       'ouverte',
-      type_chirurgie:   'curative',
-      ligne:            1,
-      association_chimio: false,
+      patient:              searchParams.get('patient') || '',
+      intention:            'curatif',
+      statut:               'planifie',
+      tnm_type:             'c',
+      voie_administration:  'iv_perf',
+      voie_abord:           'ouverte',
+      type_chirurgie:       'curative',
+      ligne:                1,
+      association_chimio:   false,
       curage_ganglionnaire: false,
-      medicaments:      [],
+      medicaments:          [],
     },
   });
 
@@ -71,23 +72,40 @@ export default function NewTraitementPage() {
 
   return (
     <AppLayout title={`Nouveau traitement – ${cfg.label}`}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
 
-        {/* Type selector */}
-        <div style={{ display:'flex', gap:8, marginBottom:20 }}>
+        {/* ✅ FIX : <button type="button" onClick> au lieu de <a href> */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
           {Object.entries(TYPE_CONFIG).map(([k, v]) => (
-            <a key={k} href={`/traitements/nouveau?type=${k}`} style={{ textDecoration:'none' }}>
-              <div style={{ padding:'8px 14px', background: k===type ? `${v.color}18` : 'var(--bg-card)', border:`1px solid ${k===type ? v.color+'40' : 'var(--border-light)'}`, borderRadius:'var(--radius-md)', color: k===type ? v.color : 'var(--text-muted)', fontSize:12, fontWeight: k===type ? 600 : 400, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-                {v.icon} {v.label}
-              </div>
-            </a>
+            <button
+              key={k}
+              type="button"
+              onClick={() => setSearchParams({ type: k })}
+              style={{
+                padding: '8px 14px',
+                background: k === type ? `${v.color}18` : 'var(--bg-card)',
+                border: `1px solid ${k === type ? v.color + '40' : 'var(--border-light)'}`,
+                borderRadius: 'var(--radius-md)',
+                color: k === type ? v.color : 'var(--text-muted)',
+                fontSize: 12,
+                fontWeight: k === type ? 600 : 400,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                transition: 'all .15s',
+                fontFamily: 'var(--font-body)',
+              }}
+            >
+              {v.label}
+            </button>
           ))}
         </div>
 
-        <div style={{ background:'var(--bg-card)', border:`1px solid ${cfg.color}20`, borderRadius:'var(--radius-lg)', padding:'28px 32px' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:24, paddingBottom:16, borderBottom:'1px solid var(--border)' }}>
-            <span style={{ fontSize:24 }}>{cfg.icon}</span>
-            <h2 style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, color:'var(--text-primary)' }}>
+        <div style={{ background: 'var(--bg-card)', border: `1px solid ${cfg.color}20`, borderRadius: 'var(--radius-lg)', padding: '28px 32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
               Nouveau – {cfg.label}
             </h2>
           </div>
@@ -101,7 +119,7 @@ export default function NewTraitementPage() {
                   <select {...register('patient', { required: 'Champ requis' })} style={selectSt}>
                     <option value="">Sélectionner...</option>
                     {patients.map(p => (
-                      <option  style={{backgroundColor:'white'}}key={p.id} value={p.id}>{p.registration_number} – {p.full_name}</option>
+                      <option style={{ backgroundColor: 'white' }} key={p.id} value={p.id}>{p.registration_number} – {p.full_name}</option>
                     ))}
                   </select>
                 </Field>
@@ -109,7 +127,7 @@ export default function NewTraitementPage() {
                   <select {...register('diagnostic')} style={selectSt}>
                     <option value="">Aucun / Non spécifié</option>
                     {diagnostics.map(d => (
-                      <option  style={{backgroundColor:'white'}}key={d.id} value={d.id}>{d.topographie_code} – {d.topographie_libelle} ({new Date(d.date_diagnostic).toLocaleDateString('fr-DZ')})</option>
+                      <option style={{ backgroundColor: 'white' }} key={d.id} value={d.id}>{d.topographie_code} – {d.topographie_libelle} ({new Date(d.date_diagnostic).toLocaleDateString('fr-DZ')})</option>
                     ))}
                   </select>
                 </Field>
@@ -125,20 +143,20 @@ export default function NewTraitementPage() {
               <Row2>
                 <Field label="Intention thérapeutique">
                   <select {...register('intention')} style={selectSt}>
-                    <option  style={{backgroundColor:'white'}}value="curatif">Curatif</option>
-                    <option  style={{backgroundColor:'white'}}value="adjuvant">Adjuvant</option>
-                    <option  style={{backgroundColor:'white'}}value="neo_adjuvant">Néo-adjuvant</option>
-                    <option  style={{backgroundColor:'white'}}value="palliatif">Palliatif</option>
-                    <option  style={{backgroundColor:'white'}}value="prophylactique">Prophylactique</option>
+                    <option style={{ backgroundColor: 'white' }} value="curatif">Curatif</option>
+                    <option style={{ backgroundColor: 'white' }} value="adjuvant">Adjuvant</option>
+                    <option style={{ backgroundColor: 'white' }} value="neo_adjuvant">Néo-adjuvant</option>
+                    <option style={{ backgroundColor: 'white' }} value="palliatif">Palliatif</option>
+                    <option style={{ backgroundColor: 'white' }} value="prophylactique">Prophylactique</option>
                   </select>
                 </Field>
                 <Field label="Statut">
                   <select {...register('statut')} style={selectSt}>
-                    <option  style={{backgroundColor:'white'}} value="planifie">Planifié</option>
-                    <option  style={{backgroundColor:'white'}} value="en_cours">En cours</option>
-                    <option  style={{backgroundColor:'white'}} value="termine">Terminé</option>
-                    <option  style={{backgroundColor:'white'}} value="suspendu">Suspendu</option>
-                    <option  style={{backgroundColor:'white'}} value="abandonne">Abandonné</option>
+                    <option style={{ backgroundColor: 'white' }} value="planifie">Planifié</option>
+                    <option style={{ backgroundColor: 'white' }} value="en_cours">En cours</option>
+                    <option style={{ backgroundColor: 'white' }} value="termine">Terminé</option>
+                    <option style={{ backgroundColor: 'white' }} value="suspendu">Suspendu</option>
+                    <option style={{ backgroundColor: 'white' }} value="abandonne">Abandonné</option>
                   </select>
                 </Field>
               </Row2>
@@ -161,7 +179,7 @@ export default function NewTraitementPage() {
                   </Field>
                   <Field label="Ligne de traitement">
                     <select {...register('ligne')} style={selectSt}>
-                      {[1,2,3,4,5].map(n => <option  style={{backgroundColor:'white'}} key={n} value={n}>{n}ère{n>1?'–'+n+'ème':''} ligne</option>)}
+                      {[1, 2, 3, 4, 5].map(n => <option style={{ backgroundColor: 'white' }} key={n} value={n}>{n === 1 ? '1ère' : `${n}ème`} ligne</option>)}
                     </select>
                   </Field>
                 </Row2>
@@ -178,19 +196,19 @@ export default function NewTraitementPage() {
                 </Row3>
                 <Field label="Voie d'administration">
                   <select {...register('voie_administration')} style={selectSt}>
-                    <option  style={{backgroundColor:'white'}} value="iv_perf">IV Perfusion</option>
-                    <option  style={{backgroundColor:'white'}} value="iv_bolus">IV Bolus</option>
-                    <option  style={{backgroundColor:'white'}} value="po">Per os (oral)</option>
-                    <option  style={{backgroundColor:'white'}} value="sc">Sous-cutanée</option>
-                    <option  style={{backgroundColor:'white'}} value="im">Intramusculaire</option>
-                    <option  style={{backgroundColor:'white'}} value="it">Intrathécale</option>
-                    <option value="autre">Autre</option>
+                    <option style={{ backgroundColor: 'white' }} value="iv_perf">IV Perfusion</option>
+                    <option style={{ backgroundColor: 'white' }} value="iv_bolus">IV Bolus</option>
+                    <option style={{ backgroundColor: 'white' }} value="po">Per os (oral)</option>
+                    <option style={{ backgroundColor: 'white' }} value="sc">Sous-cutanée</option>
+                    <option style={{ backgroundColor: 'white' }} value="im">Intramusculaire</option>
+                    <option style={{ backgroundColor: 'white' }} value="it">Intrathécale</option>
+                    <option style={{ backgroundColor: 'white' }} value="autre">Autre</option>
                   </select>
                 </Field>
               </Section>
               <Section title="Médicaments du protocole">
                 {medFields.map((field, idx) => (
-                  <div key={field.id} style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr 36px', gap:8, marginBottom:10, alignItems:'end' }}>
+                  <div key={field.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 36px', gap: 8, marginBottom: 10, alignItems: 'end' }}>
                     <Field label={idx === 0 ? 'DCI *' : ''}>
                       <input {...register(`medicaments.${idx}.dci`, { required: true })} placeholder="Ex: Doxorubicine" style={inputSt} />
                     </Field>
@@ -199,23 +217,23 @@ export default function NewTraitementPage() {
                     </Field>
                     <Field label={idx === 0 ? 'Unité' : ''}>
                       <select {...register(`medicaments.${idx}.unite_dose`)} style={selectSt}>
-                        <option  style={{backgroundColor:'white'}} value="mg/m2">mg/m²</option>
-                        <option  style={{backgroundColor:'white'}} value="mg/kg">mg/kg</option>
-                        <option  style={{backgroundColor:'white'}} value="mg">mg</option>
-                        <option  style={{backgroundColor:'white'}} value="AUC">AUC</option>
-                        <option  style={{backgroundColor:'white'}} value="UI">UI</option>
+                        <option style={{ backgroundColor: 'white' }} value="mg/m2">mg/m²</option>
+                        <option style={{ backgroundColor: 'white' }} value="mg/kg">mg/kg</option>
+                        <option style={{ backgroundColor: 'white' }} value="mg">mg</option>
+                        <option style={{ backgroundColor: 'white' }} value="AUC">AUC</option>
+                        <option style={{ backgroundColor: 'white' }} value="UI">UI</option>
                       </select>
                     </Field>
                     <Field label={idx === 0 ? 'Jours' : ''}>
                       <input {...register(`medicaments.${idx}.jour_administration`)} placeholder="J1" style={inputSt} />
                     </Field>
-                    <div style={{ paddingBottom:2 }}>
-                      <button type="button" onClick={() => removeMed(idx)} style={{ width:32, height:36, background:'rgba(255,77,106,0.1)', border:'1px solid rgba(255,77,106,0.2)', borderRadius:6, color:'#ff4d6a', cursor:'pointer', fontSize:16 }}>×</button>
+                    <div style={{ paddingBottom: 2 }}>
+                      <button type="button" onClick={() => removeMed(idx)} style={{ width: 32, height: 36, background: 'rgba(255,77,106,0.1)', border: '1px solid rgba(255,77,106,0.2)', borderRadius: 6, color: '#ff4d6a', cursor: 'pointer', fontSize: 16 }}>×</button>
                     </div>
                   </div>
                 ))}
-                <button type="button" onClick={() => addMed({ dci:'', dose:'', unite_dose:'mg/m2', jour_administration:'J1' })}
-                  style={{ padding:'7px 14px', background:'rgba(0,168,255,0.08)', border:'1px dashed rgba(0,168,255,0.3)', borderRadius:8, color:'#00a8ff', fontSize:12, cursor:'pointer' }}>
+                <button type="button" onClick={() => addMed({ dci: '', dose: '', unite_dose: 'mg/m2', jour_administration: 'J1' })}
+                  style={{ padding: '7px 14px', background: 'rgba(0,168,255,0.08)', border: '1px dashed rgba(0,168,255,0.3)', borderRadius: 8, color: '#00a8ff', fontSize: 12, cursor: 'pointer' }}>
                   + Ajouter un médicament
                 </button>
               </Section>
@@ -223,12 +241,12 @@ export default function NewTraitementPage() {
                 <Row2>
                   <Field label="Réponse tumorale">
                     <select {...register('reponse_tumorale')} style={selectSt}>
-                      <option  style={{backgroundColor:'white'}} value="">Non évaluée</option>
-                      <option  style={{backgroundColor:'white'}} value="RC">RC – Réponse complète</option>
-                      <option  style={{backgroundColor:'white'}} value="RP">RP – Réponse partielle</option>
-                      <option  style={{backgroundColor:'white'}} value="SD">SD – Stabilisation</option>
-                      <option  style={{backgroundColor:'white'}} value="PD">PD – Progression</option>
-                      <option  style={{backgroundColor:'white'}} value="NE">NE – Non évaluable</option>
+                      <option style={{ backgroundColor: 'white' }} value="">Non évaluée</option>
+                      <option style={{ backgroundColor: 'white' }} value="RC">RC – Réponse complète</option>
+                      <option style={{ backgroundColor: 'white' }} value="RP">RP – Réponse partielle</option>
+                      <option style={{ backgroundColor: 'white' }} value="SD">SD – Stabilisation</option>
+                      <option style={{ backgroundColor: 'white' }} value="PD">PD – Progression</option>
+                      <option style={{ backgroundColor: 'white' }} value="NE">NE – Non évaluable</option>
                     </select>
                   </Field>
                   <Field label="Date d'évaluation">
@@ -238,8 +256,8 @@ export default function NewTraitementPage() {
                 <Row2>
                   <Field label="Grade de toxicité (CTCAE)">
                     <select {...register('toxicite_grade')} style={selectSt}>
-                      <option  style={{backgroundColor:'white'}} value="">—</option>
-                      {[0,1,2,3,4,5].map(g => <option  style={{backgroundColor:'white'}} key={g} value={g}>Grade {g}{g===0?' – Aucune':g===1?' – Légère':g===2?' – Modérée':g===3?' – Sévère':g===4?' – Engageant le pronostic vital':' – Décès'}</option>)}
+                      <option style={{ backgroundColor: 'white' }} value="">—</option>
+                      {[0, 1, 2, 3, 4, 5].map(g => <option style={{ backgroundColor: 'white' }} key={g} value={g}>Grade {g}{g === 0 ? ' – Aucune' : g === 1 ? ' – Légère' : g === 2 ? ' – Modérée' : g === 3 ? ' – Sévère' : g === 4 ? ' – Engageant le pronostic vital' : ' – Décès'}</option>)}
                     </select>
                   </Field>
                   <Field label="Description toxicité">
@@ -258,15 +276,15 @@ export default function NewTraitementPage() {
                   </Field>
                   <Field label="Technique">
                     <select {...register('technique')} style={selectSt}>
-                      <option  style={{backgroundColor:'white'}}value="RTE">Radiothérapie externe (RTE)</option>
-                      <option  style={{backgroundColor:'white'}}value="RCMI">RCMI (modulation d'intensité)</option>
-                      <option  style={{backgroundColor:'white'}}value="RTE_3D">RTE conformationnelle 3D</option>
-                      <option  style={{backgroundColor:'white'}}value="STRT">Stéréotaxie (SBRT/SRST)</option>
-                      <option  style={{backgroundColor:'white'}}value="curie">Curiethérapie</option>
-                      <option  style={{backgroundColor:'white'}}value="tomo">Tomothérapie</option>
-                      <option  style={{backgroundColor:'white'}}value="cyber">CyberKnife</option>
-                      <option  style={{backgroundColor:'white'}}value="proton">Protonthérapie</option>
-                      <option  style={{backgroundColor:'white'}}value="autre">Autre</option>
+                      <option style={{ backgroundColor: 'white' }} value="RTE">Radiothérapie externe (RTE)</option>
+                      <option style={{ backgroundColor: 'white' }} value="RCMI">RCMI (modulation d'intensité)</option>
+                      <option style={{ backgroundColor: 'white' }} value="RTE_3D">RTE conformationnelle 3D</option>
+                      <option style={{ backgroundColor: 'white' }} value="STRT">Stéréotaxie (SBRT/SRST)</option>
+                      <option style={{ backgroundColor: 'white' }} value="curie">Curiethérapie</option>
+                      <option style={{ backgroundColor: 'white' }} value="tomo">Tomothérapie</option>
+                      <option style={{ backgroundColor: 'white' }} value="cyber">CyberKnife</option>
+                      <option style={{ backgroundColor: 'white' }} value="proton">Protonthérapie</option>
+                      <option style={{ backgroundColor: 'white' }} value="autre">Autre</option>
                     </select>
                   </Field>
                 </Row2>
@@ -290,8 +308,8 @@ export default function NewTraitementPage() {
                   </Field>
                 </Row2>
                 <Field label="">
-                  <label style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer', fontSize:13, color:'var(--text-secondary)' }}>
-                    <input type="checkbox" {...register('association_chimio')} style={{ width:14, height:14 }} />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: 'var(--text-secondary)' }}>
+                    <input type="checkbox" {...register('association_chimio')} style={{ width: 14, height: 14 }} />
                     Radiochimiothérapie concomitante
                   </label>
                 </Field>
@@ -299,10 +317,10 @@ export default function NewTraitementPage() {
               <Section title="Toxicités">
                 <Row2>
                   <Field label="Toxicité aiguë">
-                    <textarea {...register('toxicite_aigue')} rows={2} placeholder="Mucite, Épidermite..." style={{ ...inputSt, resize:'vertical' }} />
+                    <textarea {...register('toxicite_aigue')} rows={2} placeholder="Mucite, Épidermite..." style={{ ...inputSt, resize: 'vertical' }} />
                   </Field>
                   <Field label="Toxicité tardive">
-                    <textarea {...register('toxicite_tardive')} rows={2} placeholder="Fibrose, Lymphœdème..." style={{ ...inputSt, resize:'vertical' }} />
+                    <textarea {...register('toxicite_tardive')} rows={2} placeholder="Fibrose, Lymphœdème..." style={{ ...inputSt, resize: 'vertical' }} />
                   </Field>
                 </Row2>
               </Section>
@@ -317,23 +335,23 @@ export default function NewTraitementPage() {
                 <Row2>
                   <Field label="Type de chirurgie">
                     <select {...register('type_chirurgie')} style={selectSt}>
-                      <option  style={{backgroundColor:'white'}}value="curative">Curative</option>
-                      <option  style={{backgroundColor:'white'}}value="palliative">Palliative</option>
-                      <option  style={{backgroundColor:'white'}}value="cyto">Cytoréductrice</option>
-                      <option  style={{backgroundColor:'white'}}value="recons">Reconstructrice</option>
-                      <option  style={{backgroundColor:'white'}}value="diagnostic">Diagnostique / biopsie</option>
-                      <option  style={{backgroundColor:'white'}}value="ganglion">Curage ganglionnaire</option>
-                      <option  style={{backgroundColor:'white'}}value="autre">Autre</option>
+                      <option style={{ backgroundColor: 'white' }} value="curative">Curative</option>
+                      <option style={{ backgroundColor: 'white' }} value="palliative">Palliative</option>
+                      <option style={{ backgroundColor: 'white' }} value="cyto">Cytoréductrice</option>
+                      <option style={{ backgroundColor: 'white' }} value="recons">Reconstructrice</option>
+                      <option style={{ backgroundColor: 'white' }} value="diagnostic">Diagnostique / biopsie</option>
+                      <option style={{ backgroundColor: 'white' }} value="ganglion">Curage ganglionnaire</option>
+                      <option style={{ backgroundColor: 'white' }} value="autre">Autre</option>
                     </select>
                   </Field>
                   <Field label="Voie d'abord">
                     <select {...register('voie_abord')} style={selectSt}>
-                      <option  style={{backgroundColor:'white'}}value="ouverte">Chirurgie ouverte</option>
-                      <option  style={{backgroundColor:'white'}}value="laparo">Laparoscopie</option>
-                      <option  style={{backgroundColor:'white'}}value="thoraco">Thoracoscopie</option>
-                      <option  style={{backgroundColor:'white'}}value="robot">Robotique</option>
-                      <option  style={{backgroundColor:'white'}}value="endo">Endoscopie</option>
-                      <option  style={{backgroundColor:'white'}}value="autre">Autre</option>
+                      <option style={{ backgroundColor: 'white' }} value="ouverte">Chirurgie ouverte</option>
+                      <option style={{ backgroundColor: 'white' }} value="laparo">Laparoscopie</option>
+                      <option style={{ backgroundColor: 'white' }} value="thoraco">Thoracoscopie</option>
+                      <option style={{ backgroundColor: 'white' }} value="robot">Robotique</option>
+                      <option style={{ backgroundColor: 'white' }} value="endo">Endoscopie</option>
+                      <option style={{ backgroundColor: 'white' }} value="autre">Autre</option>
                     </select>
                   </Field>
                 </Row2>
@@ -343,18 +361,18 @@ export default function NewTraitementPage() {
                   </Field>
                   <Field label="Marges de résection">
                     <select {...register('marges_resection')} style={selectSt}>
-                      <option  style={{backgroundColor:'white'}} value="">Non renseigné</option>
-                      <option  style={{backgroundColor:'white'}} value="R0">R0 – Marges saines</option>
-                      <option  style={{backgroundColor:'white'}} value="R1">R1 – Microscopiquement incomplète</option>
-                      <option  style={{backgroundColor:'white'}} value="R2">R2 – Macroscopiquement incomplète</option>
-                      <option  style={{backgroundColor:'white'}} value="RX">RX – Non évaluable</option>
+                      <option style={{ backgroundColor: 'white' }} value="">Non renseigné</option>
+                      <option style={{ backgroundColor: 'white' }} value="R0">R0 – Marges saines</option>
+                      <option style={{ backgroundColor: 'white' }} value="R1">R1 – Microscopiquement incomplète</option>
+                      <option style={{ backgroundColor: 'white' }} value="R2">R2 – Macroscopiquement incomplète</option>
+                      <option style={{ backgroundColor: 'white' }} value="RX">RX – Non évaluable</option>
                     </select>
                   </Field>
                 </Row2>
                 <Row3>
                   <Field label="">
-                    <label style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer', fontSize:13, color:'var(--text-secondary)', marginTop:20 }}>
-                      <input type="checkbox" {...register('curage_ganglionnaire')} style={{ width:14, height:14 }} />
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: 'var(--text-secondary)', marginTop: 20 }}>
+                      <input type="checkbox" {...register('curage_ganglionnaire')} style={{ width: 14, height: 14 }} />
                       Curage ganglionnaire
                     </label>
                   </Field>
@@ -371,10 +389,10 @@ export default function NewTraitementPage() {
                   </Field>
                 </Row2>
                 <Field label="Complications">
-                  <textarea {...register('complications')} rows={2} placeholder="Ex: Infection du site opératoire..." style={{ ...inputSt, resize:'vertical' }} />
+                  <textarea {...register('complications')} rows={2} placeholder="Ex: Infection du site opératoire..." style={{ ...inputSt, resize: 'vertical' }} />
                 </Field>
                 <Field label="Compte rendu opératoire">
-                  <textarea {...register('compte_rendu_operatoire')} rows={3} placeholder="Résumé du compte rendu..." style={{ ...inputSt, resize:'vertical' }} />
+                  <textarea {...register('compte_rendu_operatoire')} rows={3} placeholder="Résumé du compte rendu..." style={{ ...inputSt, resize: 'vertical' }} />
                 </Field>
               </Section>
             </>}
@@ -385,13 +403,13 @@ export default function NewTraitementPage() {
                 <Row2>
                   <Field label="Type *" error={errors.type_hormonotherapie?.message}>
                     <select {...register('type_hormonotherapie', { required: 'Champ requis' })} style={selectSt}>
-                      <option  style={{backgroundColor:'white'}}value="">Sélectionner...</option>
-                      <option  style={{backgroundColor:'white'}}value="anti_estro">Anti-estrogène (Tamoxifène)</option>
-                      <option  style={{backgroundColor:'white'}}value="anti_andro">Anti-androgène</option>
-                      <option  style={{backgroundColor:'white'}}value="aromatase">Inhibiteur de l'aromatase</option>
-                      <option  style={{backgroundColor:'white'}}value="lhrh">Analogue LH-RH</option>
-                      <option  style={{backgroundColor:'white'}}value="progest">Progestatif</option>
-                      <option  style={{backgroundColor:'white'}}value="autre">Autre</option>
+                      <option style={{ backgroundColor: 'white' }} value="">Sélectionner...</option>
+                      <option style={{ backgroundColor: 'white' }} value="anti_estro">Anti-estrogène (Tamoxifène)</option>
+                      <option style={{ backgroundColor: 'white' }} value="anti_andro">Anti-androgène</option>
+                      <option style={{ backgroundColor: 'white' }} value="aromatase">Inhibiteur de l'aromatase</option>
+                      <option style={{ backgroundColor: 'white' }} value="lhrh">Analogue LH-RH</option>
+                      <option style={{ backgroundColor: 'white' }} value="progest">Progestatif</option>
+                      <option style={{ backgroundColor: 'white' }} value="autre">Autre</option>
                     </select>
                   </Field>
                   <Field label="Molécule (DCI) *" error={errors.molecule?.message}>
@@ -415,14 +433,14 @@ export default function NewTraitementPage() {
                 <Row2>
                   <Field label="Type *" error={errors.type_immunotherapie?.message}>
                     <select {...register('type_immunotherapie', { required: 'Champ requis' })} style={selectSt}>
-                      <option  style={{backgroundColor:'white'}}value="">Sélectionner...</option>
-                      <option  style={{backgroundColor:'white'}}value="checkpoint">Inhibiteur de checkpoint (anti-PD1, anti-PDL1)</option>
-                      <option  style={{backgroundColor:'white'}}value="anti_her2">Anti-HER2 (Trastuzumab, Pertuzumab)</option>
-                      <option  style={{backgroundColor:'white'}}value="anti_vegf">Anti-VEGF (Bevacizumab)</option>
-                      <option  style={{backgroundColor:'white'}}value="anti_egfr">Anti-EGFR (Cetuximab)</option>
-                      <option  style={{backgroundColor:'white'}}value="imatinib">Inhibiteur de tyrosine kinase (Imatinib, Erlotinib)</option>
-                      <option  style={{backgroundColor:'white'}}value="cart">CAR-T Cell</option>
-                      <option  style={{backgroundColor:'white'}}value="autre">Autre</option>
+                      <option style={{ backgroundColor: 'white' }} value="">Sélectionner...</option>
+                      <option style={{ backgroundColor: 'white' }} value="checkpoint">Inhibiteur de checkpoint (anti-PD1, anti-PDL1)</option>
+                      <option style={{ backgroundColor: 'white' }} value="anti_her2">Anti-HER2 (Trastuzumab, Pertuzumab)</option>
+                      <option style={{ backgroundColor: 'white' }} value="anti_vegf">Anti-VEGF (Bevacizumab)</option>
+                      <option style={{ backgroundColor: 'white' }} value="anti_egfr">Anti-EGFR (Cetuximab)</option>
+                      <option style={{ backgroundColor: 'white' }} value="imatinib">Inhibiteur de tyrosine kinase (Imatinib, Erlotinib)</option>
+                      <option style={{ backgroundColor: 'white' }} value="cart">CAR-T Cell</option>
+                      <option style={{ backgroundColor: 'white' }} value="autre">Autre</option>
                     </select>
                   </Field>
                   <Field label="Molécule (DCI) *" error={errors.molecule?.message}>
@@ -442,12 +460,12 @@ export default function NewTraitementPage() {
                 </Row3>
                 <Field label="Réponse tumorale">
                   <select {...register('reponse_tumorale')} style={selectSt}>
-                    <option  style={{backgroundColor:'white'}} value="">Non évaluée</option>
-                    <option  style={{backgroundColor:'white'}} value="RC">RC – Réponse complète</option>
-                    <option  style={{backgroundColor:'white'}} value="RP">RP – Réponse partielle</option>
-                    <option  style={{backgroundColor:'white'}} value="SD">SD – Stabilisation</option>
-                    <option  style={{backgroundColor:'white'}} value="PD">PD – Progression</option>
-                    <option  style={{backgroundColor:'white'}} value="NE">NE – Non évaluable</option>
+                    <option style={{ backgroundColor: 'white' }} value="">Non évaluée</option>
+                    <option style={{ backgroundColor: 'white' }} value="RC">RC – Réponse complète</option>
+                    <option style={{ backgroundColor: 'white' }} value="RP">RP – Réponse partielle</option>
+                    <option style={{ backgroundColor: 'white' }} value="SD">SD – Stabilisation</option>
+                    <option style={{ backgroundColor: 'white' }} value="PD">PD – Progression</option>
+                    <option style={{ backgroundColor: 'white' }} value="NE">NE – Non évaluable</option>
                   </select>
                 </Field>
               </Section>
@@ -456,17 +474,17 @@ export default function NewTraitementPage() {
             {/* Observations communes */}
             <Section title="Observations">
               <Field label="Notes cliniques">
-                <textarea {...register('observations')} rows={3} placeholder="Informations complémentaires..." style={{ ...inputSt, resize:'vertical', lineHeight:1.6 }} />
+                <textarea {...register('observations')} rows={3} placeholder="Informations complémentaires..." style={{ ...inputSt, resize: 'vertical', lineHeight: 1.6 }} />
               </Field>
             </Section>
 
             {/* Boutons */}
-            <div style={{ display:'flex', gap:10, paddingTop:20, borderTop:'1px solid var(--border)' }}>
-              <button type="button" onClick={() => navigate('/traitements')} style={{ flex:'0 0 110px', padding:'12px', background:'var(--bg-elevated)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)', color:'var(--text-secondary)', fontSize:13, cursor:'pointer' }}>
+            <div style={{ display: 'flex', gap: 10, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+              <button type="button" onClick={() => navigate('/traitements')} style={{ flex: '0 0 110px', padding: '12px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>
                 ← Annuler
               </button>
-              <button type="submit" disabled={submitting} style={{ flex:1, padding:'12px', background:`linear-gradient(135deg, ${cfg.color}, ${cfg.color}cc)`, border:'none', borderRadius:'var(--radius-md)', color:'#fff', fontSize:13.5, fontWeight:600, fontFamily:'var(--font-display)', cursor:submitting?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, opacity:submitting?0.7:1 }}>
-                {submitting ? <><Spinner /> Enregistrement...</> : ` Enregistrer ${cfg.label.toLowerCase()}`}
+              <button type="submit" disabled={submitting} style={{ flex: 1, padding: '12px', background: `linear-gradient(135deg, ${cfg.color}, ${cfg.color}cc)`, border: 'none', borderRadius: 'var(--radius-md)', color: '#fff', fontSize: 13.5, fontWeight: 600, fontFamily: 'var(--font-display)', cursor: submitting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: submitting ? 0.7 : 1 }}>
+                {submitting ? <><Spinner /> Enregistrement...</> : `Enregistrer ${cfg.label.toLowerCase()}`}
               </button>
             </div>
           </form>
@@ -479,24 +497,24 @@ export default function NewTraitementPage() {
 // ── Helpers ───────────────────────────────────────────────────────
 function Section({ title, children }) {
   return (
-    <div style={{ marginBottom:28 }}>
-      <div style={{ fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:0.8, marginBottom:14, paddingBottom:8, borderBottom:'1px solid var(--border)' }}>{title}</div>
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 14, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>{title}</div>
       {children}
     </div>
   );
 }
-function Row2({ children }) { return <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0 16px' }}>{children}</div>; }
-function Row3({ children }) { return <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'0 12px' }}>{children}</div>; }
+function Row2({ children }) { return <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>{children}</div>; }
+function Row3({ children }) { return <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 12px' }}>{children}</div>; }
 function Field({ label, error, children }) {
   return (
-    <div style={{ marginBottom:14 }}>
-      {label && <label style={{ display:'block', fontSize:11.5, fontWeight:500, color:'var(--text-secondary)', marginBottom:5, letterSpacing:0.3 }}>{label}</label>}
+    <div style={{ marginBottom: 14 }}>
+      {label && <label style={{ display: 'block', fontSize: 11.5, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 5, letterSpacing: 0.3 }}>{label}</label>}
       {children}
-      {error && <p style={{ marginTop:3, fontSize:11, color:'var(--danger)' }}>⚠ {error}</p>}
+      {error && <p style={{ marginTop: 3, fontSize: 11, color: 'var(--danger)' }}>⚠ {error}</p>}
     </div>
   );
 }
-function Spinner() { return <div style={{ width:14, height:14, border:'2px solid rgba(255,255,255,0.3)', borderTopColor:'#fff', borderRadius:'50%', animation:'spin 0.7s linear infinite' }} />; }
+function Spinner() { return <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />; }
 
-const inputSt  = { width:'100%', padding:'9px 12px', background:'var(--bg-elevated)', border:'1px solid var(--border-light)', borderRadius:'var(--radius-md)', color:'var(--text-primary)', fontSize:13, outline:'none', fontFamily:'var(--font-body)', boxSizing:'border-box' };
-const selectSt = { ...inputSt, cursor:'pointer' };
+const inputSt  = { width: '100%', padding: '9px 12px', background: 'var(--bg-elevated)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-body)', boxSizing: 'border-box' };
+const selectSt = { ...inputSt, cursor: 'pointer' };
