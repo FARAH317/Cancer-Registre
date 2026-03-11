@@ -300,6 +300,7 @@ class DiagnosticListSerializer(StatutTraitementMixin, serializers.ModelSerialize
             'etat_cancer', 'etat_cancer_label',
             'base_diagnostic', 'base_diag_label',
             'statut_dossier', 'est_principal', 'date_creation',
+            'categorie_cancer',
             'statut_traitement', 'statut_traitement_label', 'nb_traitements',
         ]
 

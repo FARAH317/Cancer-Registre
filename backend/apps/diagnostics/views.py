@@ -50,7 +50,8 @@ class DiagnosticViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, CanReadOrWriteDiagnostic]
     filter_backends    = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields   = ['patient', 'stade_ajcc', 'lateralite', 'est_principal',
-                          'tnm_type', 'type_diagnostic', 'etat_cancer', 'statut_dossier']
+                          'tnm_type', 'type_diagnostic', 'etat_cancer', 'statut_dossier',
+                          'categorie_cancer']
     search_fields      = ['topographie_code', 'topographie_libelle',
                           'morphologie_code', 'morphologie_libelle',
                           'patient__nom', 'patient__registration_number',
@@ -126,6 +127,7 @@ class DiagnosticViewSet(viewsets.ModelViewSet):
                   .values('morphologie__groupe').annotate(count=Count('id')).order_by('-count')[:8]
             ),
             'par_base': list(qs.values('base_diagnostic').annotate(count=Count('id'))),
+            'par_categorie': list(qs.values('categorie_cancer').annotate(count=Count('id'))),
         })
 
     @action(detail=False, methods=['get'])

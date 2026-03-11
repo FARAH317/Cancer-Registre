@@ -224,24 +224,11 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* ── Alertes ─────────────────────────────────────────────── */}
-      {alertes && (alertes.patients_perdus_vue > 0 || alertes.nouveaux_dossiers > 0 || alertes.sans_diagnostic > 0) && (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:24 }}>
-          {alertes.nouveaux_dossiers > 0 && (
-            <AlerteCard  label="Dossiers nouveaux à traiter" value={alertes.nouveaux_dossiers} color="#9b8afb" link="/patients?statut=nouveau" />
-          )}
-          {alertes.patients_perdus_vue > 0 && (
-            <AlerteCard  label="Patients perdus de vue" value={alertes.patients_perdus_vue} color="#f5a623" link="/patients?statut=perdu" />
-          )}
-          {alertes.sans_diagnostic > 0 && (
-            <AlerteCard  label="Patients sans diagnostic" value={alertes.sans_diagnostic} color="#ff4d6a" link="/patients" />
-          )}
-        </div>
-      )}
+      
 
       {/* ── KPIs Row 1 : Patients ────────────────────────────────── */}
       <div style={{ marginBottom:8 }}>
-        <div style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 }}>👥 Patients</div>
+        <div style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 }}>Patients</div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12, marginBottom:20 }}>
           <KPICard  label="Total patients" value={kpis.total_patients} color="#00a8ff" trend={kpis.nouveaux_ce_mois} sub={`+${kpis.nouveaux_annee} en ${kpis.annee_courante}`} link="/patients" />
           <KPICard  label="En traitement"  value={kpis.en_traitement}  color="#9b8afb" link="/patients" />
@@ -253,7 +240,7 @@ export default function DashboardPage() {
 
       {/* ── KPIs Row 2 : Clinique ────────────────────────────────── */}
       <div style={{ marginBottom:24 }}>
-        <div style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 }}>🔬 Activité clinique</div>
+        <div style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 }}>Activité clinique</div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
           <KPICard  label="Total diagnostics"   value={kpis.total_diagnostics} color="#c084fc" sub={`+${kpis.diagnostics_annee} en ${kpis.annee_courante}`} link="/diagnostics" />
           <KPICard  label="Total traitements"   value={kpis.total_traitements}  color="#38bdf8" link="/traitements" />

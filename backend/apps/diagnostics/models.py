@@ -277,7 +277,19 @@ class Diagnostic(models.Model):
     cim10_code               = models.CharField(max_length=10, blank=True)
     cim10_libelle            = models.CharField(max_length=200, blank=True)
 
-    # 12. Statut & Métadonnées
+    # 12. Hématologie — examens complémentaires (hémopathies malignes)
+    examens_hemato = models.JSONField(
+        null=True,
+        blank=True,
+        default=dict,
+        verbose_name="Examens hématologiques",
+        help_text=(
+            "Résultats des examens pour les hémopathies malignes. "
+            "Structure : { 'nfs': '...', 'myelogramme': '...', 'fish_medullaire': '...' }"
+        ),
+    )
+
+    # 13. Statut & Métadonnées
     est_principal     = models.BooleanField(default=True)
     observations      = models.TextField(blank=True)
     date_creation     = models.DateTimeField(auto_now_add=True)
